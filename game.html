@@ -32,6 +32,7 @@
     background: radial-gradient(ellipse at 50% -10%, #2c1f4d 0%, #171029 55%, #100b1e 100%);
     color: var(--ink); font-family: var(--sans);
     display: flex; justify-content: center; min-height: 100%;
+    word-break: keep-all; overflow-wrap: break-word;
   }
   .app { width: 100%; max-width: 460px; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 16px 14px calc(16px + env(safe-area-inset-bottom)); overflow: hidden; }
 
@@ -214,7 +215,7 @@
   .diag-title { font-size: 21px; font-weight: 800; margin: 4px 0 6px; color: var(--gold); text-shadow: 0 0 14px rgba(232,198,90,0.4); }
   .bars { display: flex; flex-direction: column; gap: 9px; margin: 16px 0; }
   .bar-row { display: flex; align-items: center; gap: 8px; }
-  .bar-row .l { width: 56px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); flex-shrink: 0; text-align: left; }
+  .bar-row .l { width: 64px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); flex-shrink: 0; text-align: left; white-space: nowrap; }
   .bar-track { flex: 1; height: 10px; background: var(--paper); border-radius: 4px; overflow: hidden; border: 1px solid var(--line-dim); }
   .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; width: 0%; }
   .bar-fill.env { background: var(--green); }
