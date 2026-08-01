@@ -1,0 +1,317 @@
+<title>ミライクエスト 企画書</title>
+<style>
+  :root {
+    --paper: #efebde;
+    --panel: #f8f5ec;
+    --ink: #1e2a22;
+    --ink-soft: #4c5a4f;
+    --line: #c7bfa6;
+    --green: #2e7d5b;
+    --green-soft: #e3ede6;
+    --amber: #b8641c;
+    --amber-soft: #f6e6d3;
+    --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14180f;
+      --panel: #1b2116;
+      --ink: #ede9dc;
+      --ink-soft: #a9b3a3;
+      --line: #3a4033;
+      --green: #59b98a;
+      --green-soft: #1f2c22;
+      --amber: #e2a15a;
+      --amber-soft: #2e2416;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14180f; --panel: #1b2116; --ink: #ede9dc; --ink-soft: #a9b3a3;
+    --line: #3a4033; --green: #59b98a; --green-soft: #1f2c22; --amber: #e2a15a; --amber-soft: #2e2416;
+  }
+  :root[data-theme="light"] {
+    --paper: #efebde; --panel: #f8f5ec; --ink: #1e2a22; --ink-soft: #4c5a4f;
+    --line: #c7bfa6; --green: #2e7d5b; --green-soft: #e3ede6; --amber: #b8641c; --amber-soft: #f6e6d3;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 48px 24px 100px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); flex-shrink: 0; }
+
+  header { margin-bottom: 56px; }
+  header .eyebrow { margin-bottom: 18px; }
+  h1 {
+    font-size: clamp(30px, 6vw, 44px);
+    line-height: 1.25;
+    margin: 0 0 10px 0;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+  h1 .kana { color: var(--green); }
+  .subtitle { font-size: 16px; color: var(--ink-soft); margin: 0 0 22px 0; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 8px 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+  }
+  .meta-row span {
+    border: 1px solid var(--line); border-radius: 4px; padding: 4px 9px;
+  }
+
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 13px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--green); margin: 0 0 6px 0;
+  }
+  h3 { font-size: 22px; margin: 0 0 18px 0; font-weight: 800; text-wrap: balance; }
+  p { max-width: 62ch; margin: 0 0 14px 0; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ===== ゲームの流れ(すごろくトラック) ===== */
+  .track {
+    display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 6px 2px 18px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .track-step {
+    flex: 1 0 148px; position: relative; padding: 0 14px 0 0;
+  }
+  .track-step:not(:last-child)::after {
+    content: ""; position: absolute; top: 17px; right: -2px; width: 20px; height: 2px;
+    background: var(--line);
+  }
+  .step-num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--panel); border: 2px solid var(--green); color: var(--green);
+    font-family: var(--mono); font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  }
+  .track-step.battle .step-num { border-color: var(--amber); color: var(--amber); }
+  .step-title { font-weight: 700; font-size: 14.5px; margin-bottom: 5px; }
+  .step-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ===== カードサンプル ===== */
+  .card-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+  .gcard {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; position: relative; overflow: hidden;
+  }
+  .gcard::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--type-color, var(--green));
+  }
+  .gcard .idx {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+  }
+  .gcard .idx b { color: var(--type-color, var(--green)); }
+  .gcard h4 { margin: 0 0 8px 0; font-size: 16.5px; font-weight: 800; text-wrap: balance; }
+  .gcard .effect { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 12px; }
+  .gcard .goal-tag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.03em;
+    color: var(--type-color, var(--green)); border-top: 1px dashed var(--line); padding-top: 9px;
+  }
+  .gcard.amber { --type-color: var(--amber); }
+
+  /* ===== 役割分担 ===== */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .split { grid-template-columns: 1fr; } }
+  .role-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .role-card .role-tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 8px; display: block;
+  }
+  .role-card.needs-team .role-tag { color: var(--amber); }
+  .role-card h4 { margin: 0 0 10px 0; font-size: 17px; }
+  .role-card ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-soft); }
+  .role-card li { margin-bottom: 6px; }
+
+  /* ===== オープンクエスチョン ===== */
+  .qlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .qlist li {
+    display: flex; gap: 12px; align-items: baseline;
+    border-bottom: 1px solid var(--line); padding-bottom: 12px;
+  }
+  .qlist li:last-child { border-bottom: none; }
+  .qmark {
+    font-family: var(--mono); color: var(--amber); font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .qlist li.done .qmark { color: var(--green); }
+
+  /* ===== モンスター一覧 ===== */
+  .monster-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .monster-list li {
+    display: flex; align-items: baseline; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px;
+  }
+  .monster-list .gnum {
+    font-family: var(--mono); font-size: 11px; color: var(--amber); border: 1px solid var(--amber);
+    border-radius: 4px; padding: 2px 6px; flex-shrink: 0;
+  }
+  .monster-list .mname { font-weight: 700; font-size: 14.5px; }
+  .monster-list .mgoal { font-size: 12px; color: var(--ink-soft); }
+
+  footer {
+    margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  ::selection { background: var(--green); color: var(--panel); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span>SDGs企画書 — v0.2 決定事項を反映</div>
+    <h1>ミライクエスト</h1>
+    <p class="subtitle">SDGsすごろく × カードバトル ― モール系施設のイベントブース向け</p>
+    <div class="meta-row">
+      <span>対象年齢: 小学生〜大人</span>
+      <span>想定プレイ時間: 1〜3分</span>
+      <span>形式: 物理カード + デジタル診断</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Concept</h2>
+    <h3>すごろくを進みながら選択し、ときどきモンスターとバトルする</h3>
+    <p>
+      大学のグループ参加で、ショッピングモール系施設のイベントの一つとして展示予定。通りすがりの人がその場で数分遊べて、SDGsの「選択には結果がある」という感覚を体で味わえることを目指す。対象は小学生〜大人。絵とふりがな中心の短文で構成し、未就学児は保護者と一緒に遊べる程度を想定する。
+    </p>
+    <p>
+      盤面を進みながら選択カードを引き、環境・社会・経済のポイントを貯めていく。ときどき出てくる「かだいモンスター」を、それまでに集めたカードで倒す。ゴールでQRコードを読み取ると、デジタル版で自分の結果が見られてシェアできる。
+    </p>
+  </section>
+
+  <section>
+    <h2>Game Flow</h2>
+    <h3>ゲームの流れ</h3>
+    <div class="track">
+      <div class="track-step">
+        <div class="step-num">1</div>
+        <div class="step-title">スタート</div>
+        <div class="step-desc">その場でカード一式を受け取る</div>
+      </div>
+      <div class="track-step">
+        <div class="step-num">2</div>
+        <div class="step-title">すごろくを進む</div>
+        <div class="step-desc">サイコロ or カードで数マス進む</div>
+      </div>
+      <div class="track-step">
+        <div class="step-num">3</div>
+        <div class="step-title">せんたくカード</div>
+        <div class="step-desc">止まったマスで2択イベント発生</div>
+      </div>
+      <div class="track-step battle">
+        <div class="step-num">4</div>
+        <div class="step-title">かだいモンスター</div>
+        <div class="step-desc">集めたカードで挑む。勝てばボーナス</div>
+      </div>
+      <div class="track-step">
+        <div class="step-num">5</div>
+        <div class="step-title">ゴール&診断</div>
+        <div class="step-desc">QRを読むとデジタルで結果シェア</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Card Samples</h2>
+    <h3>カードサンプル(たたき台)</h3>
+    <div class="card-gallery">
+      <div class="gcard">
+        <div class="idx"><span>せんたく</span><b>No.01</b></div>
+        <h4>レジ袋、どうする?</h4>
+        <div class="effect">A: マイバッグを使う → 環境+2<br>B: レジ袋をもらう → 経済+1・環境−1</div>
+        <div class="goal-tag">SDGs 12 つくる責任 つかう責任</div>
+      </div>
+      <div class="gcard">
+        <div class="idx"><span>こうどう</span><b>No.02</b></div>
+        <h4>マイボトル</h4>
+        <div class="effect">バトル中、環境こうげき力 +3<br>集めておくとモンスター戦で有利</div>
+        <div class="goal-tag">SDGs 14 海の豊かさを守ろう</div>
+      </div>
+      <div class="gcard amber">
+        <div class="idx"><span>かだいモンスター</span><b>No.01</b></div>
+        <h4>海洋プラスチックもんじゃ</h4>
+        <div class="effect">HP 10<br>環境カードでしかダメージを与えられない</div>
+        <div class="goal-tag">SDGs 14 海の豊かさを守ろう</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Monsters</h2>
+    <h3>かだいモンスター5体(SDGs17ゴールから代表5つ)</h3>
+    <ul class="monster-list">
+      <li><span class="gnum">SDGs 12</span><span class="mname">つかいすてジャイアント</span><span class="mgoal">つくる責任 つかう責任</span></li>
+      <li><span class="gnum">SDGs 14</span><span class="mname">海洋プラスチックもんじゃ</span><span class="mgoal">海の豊かさを守ろう</span></li>
+      <li><span class="gnum">SDGs 13</span><span class="mname">おんだんかドラゴン</span><span class="mgoal">気候変動に具体的な対策を</span></li>
+      <li><span class="gnum">SDGs 2</span><span class="mname">フードロスかいじゅう</span><span class="mgoal">飢餓をゼロに</span></li>
+      <li><span class="gnum">SDGs 6</span><span class="mname">にごりウォーター</span><span class="mgoal">安全な水とトイレを世界中に</span></li>
+    </ul>
+    <p style="margin-top:14px;">各モンスターに、せんたくカード2〜3枚・こうどうカード2枚を紐づける。カード総数はおよそ せんたく12〜15枚 + こうどう10枚 + モンスター5枚。</p>
+  </section>
+
+  <section>
+    <h2>Roles</h2>
+    <h3>物理版とデジタル版、それぞれの役割</h3>
+    <div class="split">
+      <div class="role-card needs-team">
+        <span class="role-tag">みんなの協力が必要</span>
+        <h4>物理版</h4>
+        <ul>
+          <li>すごろく盤面・カードのデザイン</li>
+          <li>選択/行動/モンスターカードの原案出し</li>
+          <li>印刷・カット・現地セット(試作は家庭用プリンタ+ラミネート → 枚数確定後にネット印刷へ本発注)</li>
+          <li>遊び方を説明するPOP作成</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <span class="role-tag">まず着手できる</span>
+        <h4>デジタル版</h4>
+        <ul>
+          <li>QRを読むと出る「診断結果」ページ</li>
+          <li>環境/社会/経済スコアの可視化</li>
+          <li>SNSシェア用の結果画像生成</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decisions</h2>
+    <h3>決定事項</h3>
+    <ul class="qlist">
+      <li class="done"><span class="qmark">✓</span><span><b>タイトル</b> ― 「ミライクエスト」に決定</span></li>
+      <li class="done"><span class="qmark">✓</span><span><b>対象年齢</b> ― 小学生〜大人。絵とふりがな中心、未就学児は保護者と一緒に</span></li>
+      <li class="done"><span class="qmark">✓</span><span><b>カード規模</b> ― モンスター5体+せんたく12〜15枚+こうどう10枚(上のMonsters参照)</span></li>
+      <li class="done"><span class="qmark">✓</span><span><b>印刷方針</b> ― 試作は家庭用プリンタ+ラミネート、本番はネット印刷に発注</span></li>
+    </ul>
+    <h3 style="margin-top:32px; font-size:18px;">まだ確認中</h3>
+    <ul class="qlist">
+      <li><span class="qmark">?</span><span><b>本番の日程</b> ― 未確定。決まり次第、逆算してタスクを割り振る</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>ミライクエスト 企画書 v0.2</span>
+    <span>作成: かずき & 紡</span>
+  </footer>
+
+</div>
