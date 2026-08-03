@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>ミライクエスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
   :root {
     --paper: #171029;
@@ -25,6 +28,7 @@
     --hp2: #f0774f;
     --sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
     --mono: "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --pixel: "DotGothic16", var(--sans);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; overscroll-behavior: none; }
@@ -34,34 +38,35 @@
     display: flex; justify-content: center; min-height: 100%;
     word-break: keep-all; overflow-wrap: break-word;
   }
-  .app { width: 100%; max-width: 460px; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 16px 14px calc(16px + env(safe-area-inset-bottom)); overflow: hidden; }
+  .app { width: 100%; max-width: 620px; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 16px 14px calc(16px + env(safe-area-inset-bottom)); overflow: hidden; }
 
   .screen { display: none; flex: 1; flex-direction: column; min-height: 0; min-width: 0; }
   .screen.active { display: flex; }
+  .narrow { width: 100%; max-width: 420px; margin: 0 auto; min-height: 0; }
 
   .eyebrow {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; color: var(--gold);
+    font-family: var(--pixel); font-size: 11px; letter-spacing: 0.14em; color: var(--gold);
     text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-shrink: 0;
   }
-  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
 
-  h1 { font-size: 30px; margin: 0 0 6px 0; font-weight: 800; color: var(--ink); }
+  h1 { font-family: var(--pixel); font-size: 30px; margin: 0 0 6px 0; font-weight: 700; color: var(--ink); }
   p { line-height: 1.7; margin: 0 0 12px 0; color: var(--ink-soft); font-size: 14px; }
 
-  button { font-family: var(--sans); border: none; cursor: pointer; -webkit-appearance: none; }
+  button { font-family: var(--pixel); border: none; cursor: pointer; -webkit-appearance: none; }
   button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   button:disabled { opacity: 0.45; }
 
   .btn-primary {
-    background: linear-gradient(180deg, #3fa877, #1f5c3f); color: #fff6dc; font-weight: 800; font-size: 16px;
-    border: 2px solid var(--line); border-radius: 10px; padding: 15px; width: 100%; transition: transform 0.12s;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 0 #0f3324, 0 6px 10px rgba(0,0,0,0.4);
+    background: linear-gradient(180deg, #3fa877, #1f5c3f); color: #fff6dc; font-weight: 700; font-size: 16px;
+    border: 2px solid var(--line); border-radius: 5px; padding: 15px; width: 100%; transition: transform 0.12s;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 0 #0f3324;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5); letter-spacing: 0.03em;
   }
   .btn-primary:active { transform: translateY(3px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 0 #0f3324; }
   .btn-secondary {
     background: linear-gradient(180deg, var(--panel2), var(--panel)); color: var(--gold); border: 1.5px solid var(--line-dim);
-    font-weight: 700; font-size: 13.5px; border-radius: 8px; padding: 12px; width: 100%; margin-top: 8px;
+    font-weight: 700; font-size: 13.5px; border-radius: 4px; padding: 12px; width: 100%; margin-top: 8px;
   }
 
   /* ===== title ===== */
@@ -77,65 +82,80 @@
     text-shadow: 0 0 18px rgba(232,198,90,0.45), 0 2px 3px rgba(0,0,0,0.6);
   }
   .rules { text-align: left; font-size: 12.5px; color: var(--ink-soft); margin: 14px 0; padding: 14px 16px;
-    background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 10px; line-height: 1.85;
+    background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 5px; line-height: 1.85;
     box-shadow: inset 0 0 0 1px rgba(232,198,90,0.08); }
-  .rules b { color: var(--gold); }
+  .rules b { color: var(--gold); font-family: var(--pixel); }
 
-  /* ===== play header ===== */
-  .stat-row { display: flex; gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
-  .stat-pill {
-    flex: 1; background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 1.5px solid var(--line-dim); border-radius: 8px;
-    padding: 7px 4px; text-align: center; transition: transform 0.25s; display: flex; align-items: center; justify-content: center; gap: 4px;
+  /* ===== play layout ===== */
+  .play-layout { flex: 1; min-height: 0; min-width: 0; display: flex; gap: 12px; }
+  .board-wrap {
+    flex: 1.5; min-height: 0; min-width: 0; background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 6px;
+    padding: 12px; display: flex; flex-direction: column; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.07);
   }
-  .stat-pill.pulse { transform: scale(1.1); }
-  .stat-pill .ic { font-size: 13px; }
-  .stat-pill .value { font-family: var(--mono); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sidebar {
+    flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px;
+    background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 6px;
+    padding: 10px; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.07);
+  }
+  @media (max-width: 560px) {
+    .play-layout { flex-direction: column; }
+    .sidebar { flex: 0 0 auto; }
+    .sidebar .stat-row { flex-direction: row; }
+    .hand-strip { max-height: 92px; }
+  }
+
+  .stat-row { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+  .stat-pill {
+    flex: 1; background: linear-gradient(180deg, var(--panel), var(--paper)); border: 1.5px solid var(--line-dim); border-radius: 4px;
+    padding: 8px 10px; text-align: center; transition: transform 0.25s; display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+  }
+  .stat-pill.pulse { transform: scale(1.06); }
+  .stat-pill .ic { font-size: 15px; }
+  .stat-pill .value { font-family: var(--mono); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .stat-pill.env .value { color: var(--green); }
   .stat-pill.soc .value { color: var(--blue); }
   .stat-pill.eco .value { color: var(--amber); }
 
+  .hand-label { font-family: var(--pixel); font-size: 11.5px; color: var(--gold); letter-spacing: 0.06em; }
+
   /* ===== board (snake) ===== */
-  .board-wrap {
-    flex: 1; min-height: 0; background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 12px;
-    padding: 12px; display: flex; flex-direction: column; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.07);
-  }
   .board-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
-  .board-row { display: flex; gap: 8px; justify-content: center; background: var(--road); border: 1px solid var(--line-dim); border-radius: 10px; padding: 6px; }
+  .board-row { display: flex; gap: 8px; justify-content: center; background: var(--road); border: 1px solid var(--line-dim); border-radius: 5px; padding: 6px; }
   .connector-row { display: flex; gap: 8px; justify-content: center; height: 12px; }
   .connector-slot { width: 42px; flex-shrink: 0; display: flex; justify-content: center; }
-  .connector-bar { width: 12px; height: 12px; background: var(--line-dim); border-radius: 4px; visibility: hidden; }
+  .connector-bar { width: 12px; height: 12px; background: var(--line-dim); border-radius: 3px; visibility: hidden; }
   .connector-bar.show { visibility: visible; }
 
   .sq {
-    width: 42px; height: 42px; border-radius: 8px; background: var(--paper); border: 1.5px solid var(--line-dim);
+    width: 42px; height: 42px; border-radius: 4px; background: var(--paper); border: 1.5px solid var(--line-dim);
     display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; position: relative;
   }
-  .sq.monster { border-color: var(--hp1); background: var(--amber-soft); overflow: visible; box-shadow: 0 0 8px rgba(217,75,59,0.35); }
+  .sq.monster { border-color: var(--hp1); background: var(--amber-soft); overflow: visible; box-shadow: 2px 2px 0 rgba(217,75,59,0.35); }
   .sq.monster img { width: 34px; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
-  .sq.goal { border-color: var(--gold); background: linear-gradient(180deg,#3a2f14,#241c3c); font-size: 20px; box-shadow: 0 0 10px rgba(232,198,90,0.4); }
+  .sq.goal { border-color: var(--gold); background: linear-gradient(180deg,#3a2f14,#241c3c); font-size: 20px; box-shadow: 2px 2px 0 rgba(232,198,90,0.4); }
   .sq.warp { border-color: var(--blue); background: var(--blue-soft); }
   .sq.slip { border-color: #8a6fae; background: #2a2044; }
-  .sq.current { box-shadow: 0 0 0 3px var(--gold), 0 0 10px rgba(232,198,90,0.6); }
+  .sq.current { box-shadow: 0 0 0 3px var(--gold); }
   .sq .num { position: absolute; bottom: 1px; right: 3px; font-family: var(--mono); font-size: 7px; color: var(--ink-soft); opacity: 0.5; }
   .token-marker { position: absolute; top: -20px; left: 50%; transform: translateX(-50%) scale(0); font-size: 20px; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
   .token-marker.show { transform: translateX(-50%) scale(1); }
 
-  /* ===== hand strip ===== */
-  .hand-strip { display: flex; gap: 6px; overflow-x: auto; padding: 8px 2px 0; flex-shrink: 0; min-height: 30px; }
+  /* ===== hand list (sidebar) ===== */
+  .hand-strip { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; padding: 2px 0; }
   .hand-strip:empty::after { content: "カードはまだありません"; font-size: 11px; color: var(--ink-soft); font-family: var(--mono); }
   .hand-chip {
-    flex-shrink: 0; display: flex; align-items: center; gap: 3px; padding: 4px 8px; border-radius: 6px;
-    font-family: var(--mono); font-size: 11px; font-weight: 700; border: 1.5px solid; background: var(--paper);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700; border: 1.5px solid; background: var(--paper);
   }
   .hand-chip.env { border-color: var(--green); color: var(--green); }
   .hand-chip.soc { border-color: var(--blue); color: var(--blue); }
   .hand-chip.eco { border-color: var(--amber); color: var(--amber); }
 
   .roll-wrap { padding-top: 12px; flex-shrink: 0; }
-  .roll-hint { font-size: 11.5px; color: var(--gold); text-align: center; margin-bottom: 6px; font-family: var(--mono); min-height: 15px; }
+  .roll-hint { font-family: var(--pixel); font-size: 12px; color: var(--gold); text-align: center; margin-bottom: 6px; min-height: 15px; }
   .dice-row { display: flex; justify-content: center; margin-bottom: 8px; }
   .dice-face {
-    width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(180deg, var(--panel2), var(--paper)); border: 2px solid var(--line);
+    width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(180deg, var(--panel2), var(--paper)); border: 2px solid var(--line);
     display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 20px; font-weight: 800;
     color: var(--gold); transition: transform 0.08s; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.1);
   }
@@ -151,24 +171,31 @@
   }
   .modal-backdrop.active { display: flex; }
   .modal {
-    background: linear-gradient(180deg, #2c2249, #1c1533); border: 2px solid var(--line); border-radius: 14px 14px 0 0;
+    background: linear-gradient(180deg, #2c2249, #1c1533); border: 2px solid var(--line); border-radius: 6px 6px 0 0;
     padding: 22px 20px 26px; width: 100%; max-width: 460px;
     animation: slideup 0.32s cubic-bezier(.2,.7,.3,1); max-height: 86vh; overflow-y: auto;
-    box-shadow: inset 0 0 0 1px rgba(232,198,90,0.15), 0 -8px 24px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 0 1px rgba(232,198,90,0.15), 0 -6px 0 rgba(0,0,0,0.5);
   }
   @keyframes slideup { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal .kicker { font-family: var(--mono); font-size: 10.5px; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 6px; }
-  .modal h3 { font-size: 19px; margin: 0 0 12px 0; font-weight: 800; text-wrap: balance; color: var(--ink); }
+  .modal .kicker { font-family: var(--pixel); font-size: 11px; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 6px; }
+  .modal h3 { font-family: var(--pixel); font-size: 19px; margin: 0 0 12px 0; font-weight: 700; text-wrap: balance; color: var(--ink); }
   .choice-btn {
-    display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; background: var(--paper);
-    border: 1.5px solid var(--line-dim); border-radius: 8px; padding: 13px 15px; margin-bottom: 9px; font-size: 14px; font-weight: 700;
+    display: block; width: 100%; text-align: left; background: var(--paper);
+    border: 1.5px solid var(--line-dim); border-radius: 4px; padding: 13px 15px; margin-bottom: 9px; font-size: 14px; font-weight: 700;
     color: var(--ink);
   }
   .choice-btn:active { background: var(--green-soft); border-color: var(--green); }
-  .choice-btn .reward { font-family: var(--mono); font-weight: 700; font-size: 11.5px; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; margin-left: 10px; border: 1px solid; }
-  .choice-btn .reward.env { background: var(--green-soft); color: var(--green); border-color: var(--green); }
-  .choice-btn .reward.soc { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
-  .choice-btn .reward.eco { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
+
+  /* ===== event result ===== */
+  .event-badges { display: flex; flex-wrap: wrap; margin-bottom: 4px; }
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-weight: 700; font-size: 12px;
+    padding: 6px 10px; border-radius: 4px; margin: 0 6px 8px 0; border: 1.5px solid;
+  }
+  .result-badge.env { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+  .result-badge.soc { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+  .result-badge.eco { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
+  .result-badge.card-get { background: var(--panel2); color: var(--gold); border-color: var(--line); }
 
   /* ===== battle ===== */
   .battle-stage { display: flex; flex-direction: column; align-items: center; margin: 10px 0 16px; position: relative; }
@@ -179,11 +206,12 @@
   .battle-stage img { width: 120px; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5)); transition: transform 0.15s; position: relative; }
   .battle-stage img.hit { animation: shake 0.35s; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) rotate(-4deg)} 75%{transform:translateX(8px) rotate(4deg)} }
-  .weak-badge { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 6px; margin-top: 6px; font-weight: 700; border: 1px solid currentColor; position: relative; }
+  .weak-badge { font-family: var(--pixel); font-size: 12px; padding: 3px 10px; border-radius: 4px; margin-top: 6px; font-weight: 700; border: 1px solid currentColor; position: relative; }
+  .battle-desc { font-size: 12px; margin: 8px 0 4px; text-align: center; }
   .hp-wrap { width: 100%; margin: 12px 0; }
-  .hp-label { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--gold); margin-bottom: 4px; }
-  .hp-track { height: 14px; background: var(--paper); border-radius: 4px; overflow: hidden; border: 1.5px solid var(--line-dim); }
-  .hp-fill { height: 100%; background: linear-gradient(180deg, var(--hp2), var(--hp1)); border-radius: 3px; transition: width 0.4s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); }
+  .hp-label { display: flex; justify-content: space-between; font-family: var(--pixel); font-size: 11.5px; color: var(--gold); margin-bottom: 4px; }
+  .hp-track { height: 14px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1.5px solid var(--line-dim); }
+  .hp-fill { height: 100%; background: linear-gradient(180deg, var(--hp2), var(--hp1)); border-radius: 2px; transition: width 0.4s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); }
   .dmg-pop {
     position: absolute; top: 30%; left: 50%; font-family: var(--mono); font-weight: 800; font-size: 22px;
     color: #fff3d6; text-shadow: 0 2px 3px rgba(0,0,0,0.6); pointer-events: none; animation: dmgpop 0.65s ease forwards; z-index: 2;
@@ -191,33 +219,35 @@
   .dmg-pop.super { color: #ff5c4d; font-size: 30px; }
   @keyframes dmgpop { 0%{opacity:1; transform:translate(-50%,0) scale(1);} 100%{opacity:0; transform:translate(-50%,-38px) scale(1.15);} }
 
-  .battle-hand-label { font-size: 12px; color: var(--ink-soft); margin: 10px 0 6px; }
-  .battle-hand { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .battle-hand-label { font-family: var(--pixel); font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 6px; }
+  .battle-hand { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .play-card {
-    flex: 1 0 auto; min-width: 78px; border-radius: 8px; padding: 10px 8px; text-align: center; border: 2px solid;
-    font-weight: 800; font-size: 13px; position: relative; background: var(--paper);
+    flex: 1 0 auto; min-width: 78px; border-radius: 4px; padding: 10px 8px; text-align: center; border: 2px solid;
+    font-weight: 700; font-size: 13px; position: relative; background: var(--paper);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   }
   .play-card.env { border-color: var(--green); color: var(--green); }
   .play-card.soc { border-color: var(--blue); color: var(--blue); }
   .play-card.eco { border-color: var(--amber); color: var(--amber); }
+  .play-card.status { border-color: var(--gold); color: var(--gold); }
   .play-card .pw { display: block; font-family: var(--mono); font-size: 17px; margin-top: 2px; }
   .play-card.super::before { content: "とくこう!"; position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
-    background: var(--gold); color: #241c3c; font-size: 8.5px; padding: 1px 6px; border-radius: 5px; font-family: var(--mono); font-weight: 800; }
-  .battle-result { text-align: center; padding: 14px; border-radius: 8px; margin: 6px 0 14px; font-weight: 800; font-size: 16px; border: 1.5px solid; }
+    background: var(--gold); color: #241c3c; font-size: 8.5px; padding: 1px 6px; border-radius: 4px; font-family: var(--pixel); font-weight: 700; }
+  .btn-flee { margin-top: 4px; }
+  .battle-result { text-align: center; padding: 14px; border-radius: 4px; margin: 6px 0 14px; font-weight: 700; font-size: 16px; border: 1.5px solid; font-family: var(--pixel); }
   .battle-result.win { background: var(--green-soft); color: var(--green); border-color: var(--green); }
   .battle-result.lose { background: var(--amber-soft); color: var(--hp2); border-color: var(--hp1); }
 
   /* ===== result ===== */
-  .diag-card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line); border-radius: 12px; padding: 22px 18px; text-align: center; margin-bottom: 14px;
+  .diag-card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line); border-radius: 6px; padding: 22px 18px; text-align: center; margin-bottom: 14px;
     box-shadow: inset 0 0 0 1px rgba(232,198,90,0.12); }
   .diag-emoji { font-size: 42px; }
-  .diag-title { font-size: 21px; font-weight: 800; margin: 4px 0 6px; color: var(--gold); text-shadow: 0 0 14px rgba(232,198,90,0.4); }
+  .diag-title { font-family: var(--pixel); font-size: 21px; font-weight: 700; margin: 4px 0 6px; color: var(--gold); text-shadow: 0 0 14px rgba(232,198,90,0.4); }
   .bars { display: flex; flex-direction: column; gap: 9px; margin: 16px 0; }
   .bar-row { display: flex; align-items: center; gap: 8px; }
-  .bar-row .l { width: 64px; font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); flex-shrink: 0; text-align: left; white-space: nowrap; }
-  .bar-track { flex: 1; height: 10px; background: var(--paper); border-radius: 4px; overflow: hidden; border: 1px solid var(--line-dim); }
-  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; width: 0%; }
+  .bar-row .l { width: 64px; font-family: var(--pixel); font-size: 11px; color: var(--ink-soft); flex-shrink: 0; text-align: left; white-space: nowrap; }
+  .bar-track { flex: 1; height: 10px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1px solid var(--line-dim); }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; width: 0%; }
   .bar-fill.env { background: var(--green); }
   .bar-fill.soc { background: var(--blue); }
   .bar-fill.eco { background: var(--amber); }
@@ -230,6 +260,7 @@
 
   <!-- ===== タイトル画面 ===== -->
   <div class="screen active" id="screen-title">
+   <div class="narrow">
     <div class="title-mons">
       <img src="assets/monsters/kaiyou_plastic.png" alt="">
       <img src="assets/monsters/ondanka_dragon.png" alt="">
@@ -241,34 +272,41 @@
     <div class="rules">
       <b>あそびかた</b><br>
       ①「すすむ」でコマを進める<br>
-      ②止まったマスでカードの2択を選ぶ→手札が増える<br>
-      ③モンスターマスでは、手札のカードを選んで戦う<br>
+      ②止まったマスで4つの選択肢から1つを選ぶ→選ぶまで何が起こるかは分からない、当たりならステータスとカードが手に入る、まれにハズレもある<br>
+      ③モンスターマスでは、手札のカードか「ステータスこうげき」で戦う。ステータスこうげきはカードがなくても何度でも使える<br>
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
+   </div>
   </div>
 
   <!-- ===== プレイ画面 ===== -->
   <div class="screen" id="screen-play">
     <div class="eyebrow"><span class="dot"></span>ミライクエスト</div>
-    <div class="stat-row">
-      <div class="stat-pill env" id="pill-env"><span class="ic">🌿</span><span class="value" id="val-env">0</span></div>
-      <div class="stat-pill soc" id="pill-soc"><span class="ic">🤝</span><span class="value" id="val-soc">0</span></div>
-      <div class="stat-pill eco" id="pill-eco"><span class="ic">💰</span><span class="value" id="val-eco">0</span></div>
-    </div>
-    <div class="board-wrap">
-      <div class="board-scroll" id="board-scroll"></div>
-      <div class="hand-strip" id="hand-strip"></div>
-      <div class="roll-wrap">
-        <div class="dice-row"><div class="dice-face" id="dice-face">🎲</div></div>
-        <div class="roll-hint" id="roll-hint">「すすむ」をタップしてスタート</div>
-        <button class="btn-primary" id="btn-roll">すすむ</button>
+    <div class="play-layout">
+      <div class="board-wrap">
+        <div class="board-scroll" id="board-scroll"></div>
+        <div class="roll-wrap">
+          <div class="dice-row"><div class="dice-face" id="dice-face">🎲</div></div>
+          <div class="roll-hint" id="roll-hint">「すすむ」をタップしてスタート</div>
+          <button class="btn-primary" id="btn-roll">すすむ</button>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-row">
+          <div class="stat-pill env" id="pill-env"><span class="ic">🌿</span><span class="value" id="val-env">0</span></div>
+          <div class="stat-pill soc" id="pill-soc"><span class="ic">🤝</span><span class="value" id="val-soc">0</span></div>
+          <div class="stat-pill eco" id="pill-eco"><span class="ic">💰</span><span class="value" id="val-eco">0</span></div>
+        </div>
+        <div class="hand-label">てもちカード</div>
+        <div class="hand-strip" id="hand-strip"></div>
       </div>
     </div>
   </div>
 
   <!-- ===== 結果画面 ===== -->
   <div class="screen" id="screen-result">
+   <div class="narrow">
     <div class="eyebrow"><span class="dot"></span>ゴール!</div>
     <div class="diag-card">
       <div class="diag-emoji" id="diag-emoji">🏆</div>
@@ -282,6 +320,7 @@
     </div>
     <button class="btn-primary" id="btn-copy">けっかをコピーする</button>
     <button class="btn-secondary" id="btn-restart">もういちど遊ぶ</button>
+   </div>
   </div>
 
 </div>
@@ -289,10 +328,14 @@
 <!-- ===== イベントモーダル ===== -->
 <div class="modal-backdrop" id="modal-event">
   <div class="modal">
-    <div class="kicker">せんたくカード</div>
+    <div class="kicker">できごと</div>
     <h3 id="event-text"></h3>
-    <button class="choice-btn" id="event-btn-a"></button>
-    <button class="choice-btn" id="event-btn-b"></button>
+    <div id="event-choices"></div>
+    <div id="event-result" style="display:none;">
+      <div class="event-badges" id="event-badges"></div>
+      <p id="event-trivia"></p>
+      <button class="btn-primary" id="btn-event-next">つぎへすすむ</button>
+    </div>
   </div>
 </div>
 
@@ -305,14 +348,16 @@
       <img id="battle-img" src="" alt="">
       <span class="weak-badge" id="battle-weak"></span>
     </div>
+    <p class="battle-desc" id="battle-desc"></p>
     <div class="hp-wrap">
       <div class="hp-label"><span>HP</span><span id="hp-text">0 / 0</span></div>
       <div class="hp-track"><div class="hp-fill" id="hp-fill" style="width:100%"></div></div>
     </div>
     <div id="battle-result" style="display:none;"></div>
     <div id="battle-live">
-      <div class="battle-hand-label">手札のカードをタップして攻撃</div>
+      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう</div>
       <div class="battle-hand" id="battle-hand"></div>
+      <button class="btn-secondary btn-flee" id="btn-battle-flee">にげる</button>
     </div>
     <button class="btn-secondary" id="btn-battle-next" style="display:none;">つぎへ</button>
   </div>
@@ -365,11 +410,16 @@
   var ROWS = 5, COLS = 4;
 
   var monsters = [
-    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, img: "assets/monsters/tsukaisute.png", pos: 4 },
-    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, img: "assets/monsters/kaiyou_plastic.png", pos: 8 },
-    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, img: "assets/monsters/ondanka_dragon.png", pos: 12 },
-    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, img: "assets/monsters/foodloss.png", pos: 16 },
-    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, img: "assets/monsters/nigori_water.png", pos: 19 }
+    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, img: "assets/monsters/tsukaisute.png", pos: 4,
+      desc: "使い捨てプラスチックごみは、自然の中で分解されるまでに数百年かかることもあるんだ。" },
+    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, img: "assets/monsters/kaiyou_plastic.png", pos: 8,
+      desc: "海に流れ着いたプラスチックごみは、魚や海鳥の体の中に取り込まれてしまうことがあるよ。" },
+    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, img: "assets/monsters/ondanka_dragon.png", pos: 12,
+      desc: "地球の平均気温は、この100年で約1℃上昇したと言われているよ。" },
+    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, img: "assets/monsters/foodloss.png", pos: 16,
+      desc: "世界では約7億人以上が飢えに苦しむ一方、大量の食べ物が捨てられているんだ。" },
+    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, img: "assets/monsters/nigori_water.png", pos: 19,
+      desc: "世界には、安全な水を手に入れられない人が今も約20億人いると言われているよ。" }
   ];
   var specials = {};
   monsters.forEach(function (m, i) { specials[m.pos] = i; });
@@ -381,18 +431,78 @@
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
   var events = [
-    { text: "コンビニでレジ袋、どうする?", a: { label: "マイバッグを使う", attr: "env", power: 3 }, b: { label: "レジ袋をもらう", attr: "eco", power: 2 } },
-    { text: "飲み物を買うなら?", a: { label: "マイボトルに入れる", attr: "env", power: 3 }, b: { label: "ペットボトルを買う", attr: "eco", power: 2 } },
-    { text: "晩ごはん、食べきれなかった…", a: { label: "残さず食べきる", attr: "soc", power: 2 }, b: { label: "残してしまう", attr: "env", power: 1 } },
-    { text: "教室の電気がつけっぱなし、見つけた", a: { label: "消しに行く", attr: "env", power: 3 }, b: { label: "そのままにする", attr: "eco", power: 2 } },
-    { text: "友だちが一人で悩んでいるみたい", a: { label: "声をかける", attr: "soc", power: 3 }, b: { label: "見て見ぬふりをする", attr: "eco", power: 1 } },
-    { text: "エレベーターが混んでいる、あなたは2階へ", a: { label: "階段を使う", attr: "env", power: 2 }, b: { label: "並んで待つ", attr: "soc", power: 1 } },
-    { text: "フードロスのパンが半額に", a: { label: "買って食べる", attr: "soc", power: 2 }, b: { label: "気にせず新品を買う", attr: "eco", power: 2 } },
-    { text: "ペットボトルを捨てるとき", a: { label: "キャップを外して分別する", attr: "env", power: 3 }, b: { label: "そのまま捨てる", attr: "eco", power: 1 } },
-    { text: "お小遣いの使いみち", a: { label: "一部を寄付する", attr: "soc", power: 3 }, b: { label: "全部自分のために使う", attr: "eco", power: 2 } },
-    { text: "近所の高齢者が重い荷物を運んでいる", a: { label: "手伝う", attr: "soc", power: 3 }, b: { label: "通り過ぎる", attr: "eco", power: 1 } },
-    { text: "着られなくなった服がある", a: { label: "リサイクルショップに出す", attr: "eco", power: 2 }, b: { label: "そのまま捨てる", attr: "env", power: 1 } },
-    { text: "歯みがき中、水を出しっぱなしにしがち", a: { label: "こまめに水を止める", attr: "env", power: 3 }, b: { label: "出しっぱなしにする", attr: "eco", power: 1 } }
+    { text: "コンビニでレジ袋、どうする?",
+      env: { label: "持ってきたマイバッグに入れる", power: 3 },
+      soc: { label: "お店の人に『簡易包装で』とお願いする", power: 2 },
+      eco: { label: "ポイントカードで会計をすませる", power: 2 },
+      miss: { attr: "env", power: -3, label: "大きめのレジ袋を1枚もらっておく" },
+      trivia: "レジ袋1枚を作るのに使われる原料は石油。日本全体では、かつて年間数百億枚ものレジ袋が使われてきたと言われているよ。" },
+    { text: "飲み物を買うなら?",
+      env: { label: "マイボトルに水を入れて持っていく", power: 3 },
+      soc: { label: "友だちの分もいっしょに買って渡す", power: 2 },
+      eco: { label: "安売りしているジュースを選ぶ", power: 2 },
+      miss: { attr: "env", power: -3, label: "自販機でペットボトルの飲み物を買う" },
+      trivia: "ペットボトルが自然に分解されるまでには、数百年かかると言われているよ。" },
+    { text: "晩ごはん、食べきれなかった…",
+      env: { label: "小さく取り分けて食べきれる量にする", power: 2 },
+      soc: { label: "『残りは弟にあげていい?』と聞いてシェアする", power: 3 },
+      eco: { label: "ラップをかけて冷蔵庫に保存する", power: 2 },
+      miss: { attr: "env", power: -2, label: "お腹がいっぱいなので残しておく" },
+      trivia: "日本の食品ロスは年間約470万トン。国民一人あたり、毎日お茶碗1杯分のご飯を捨てている計算になるよ。" },
+    { text: "教室の電気がつけっぱなし、見つけた",
+      env: { label: "自分で消しに行く", power: 3 },
+      soc: { label: "近くの友だちに『消しておこう』と声をかける", power: 2 },
+      eco: { label: "あとで先生に伝えておく", power: 2 },
+      miss: { attr: "env", power: -3, label: "急いでいるのでそのまま教室を出る" },
+      trivia: "教室の照明を1時間消すだけでも、CO2の排出量を少し減らすことができるよ。" },
+    { text: "友だちが一人で悩んでいるみたい",
+      env: { label: "気分転換に一緒に外の空気を吸いに行く", power: 2 },
+      soc: { label: "声をかけて話を聞く", power: 3 },
+      eco: { label: "落ち着けるように飲み物をおごる", power: 2 },
+      miss: { attr: "soc", power: -3, label: "そっとしておいて、あとで様子を見る" },
+      trivia: "SDGsの目標3『すべての人に健康と福祉を』には、心の健康(メンタルヘルス)も含まれているんだよ。" },
+    { text: "エレベーターが混んでいる、あなたは2階へ",
+      env: { label: "階段を使う", power: 3 },
+      soc: { label: "先に待っていた人を先に通す", power: 2 },
+      eco: { label: "次のエレベーターを待つ", power: 2 },
+      miss: { attr: "soc", power: -3, label: "少し無理をして詰めて乗り込む" },
+      trivia: "階段を使うと電力を使わないだけでなく、ちょっとした運動にもなるよ。" },
+    { text: "フードロスのパンが半額に",
+      env: { label: "もったいないので買って食べる", power: 3 },
+      soc: { label: "友だちの分もいっしょに買ってシェアする", power: 2 },
+      eco: { label: "お得なので少し多めに買う", power: 3 },
+      miss: { attr: "env", power: -2, label: "そのまま新品のパンを定価で買う" },
+      trivia: "『てまえどり』(棚の手前にある商品から取ること)は、お店の食品ロスを減らす身近な工夫のひとつだよ。" },
+    { text: "ペットボトルを捨てるとき",
+      env: { label: "キャップを外してラベルもはがし分別する", power: 3 },
+      soc: { label: "分別のやり方を知らない友だちに教える", power: 2 },
+      eco: { label: "リサイクル回収ポイントを貯める", power: 2 },
+      miss: { attr: "env", power: -3, label: "そのままゴミ箱に入れる" },
+      trivia: "ペットボトルは正しく分別すると、服や新しいペットボトルに生まれ変わることができるんだよ。" },
+    { text: "お小遣いの使いみち",
+      env: { label: "環境保護団体に少し寄付する", power: 2 },
+      soc: { label: "災害支援の募金箱に入れる", power: 3 },
+      eco: { label: "コツコツ貯金する", power: 3 },
+      miss: { attr: "eco", power: -3, label: "気になっていたものに全部使う" },
+      trivia: "少額の寄付でも積み重なれば大きな支援になる。これは『マイクロドネーション』と呼ばれたりするよ。" },
+    { text: "近所の高齢者が重い荷物を運んでいる",
+      env: { label: "平らな道を選んで一緒に歩く", power: 2 },
+      soc: { label: "声をかけて手伝う", power: 3 },
+      eco: { label: "荷物を運ぶ台車を貸してあげる", power: 2 },
+      miss: { attr: "soc", power: -3, label: "急いでいるのでそのまま通り過ぎる" },
+      trivia: "SDGsの目標11『住み続けられるまちづくりを』には、高齢者にもやさしい地域づくりが含まれているよ。" },
+    { text: "着られなくなった服がある",
+      env: { label: "布から布へのリサイクルに出す", power: 3 },
+      soc: { label: "サイズが合う友だちに譲る", power: 2 },
+      eco: { label: "リサイクルショップに売る", power: 3 },
+      miss: { attr: "env", power: -3, label: "そのまま燃えるゴミに出す" },
+      trivia: "Tシャツ1枚を作るのに、約2,300リットルの水が必要と言われているよ。服にはたくさんの資源が使われているんだ。" },
+    { text: "歯みがき中、水を出しっぱなしにしがち",
+      env: { label: "こまめに水を止める", power: 3 },
+      soc: { label: "家族にも『一緒に止めよう』と声をかける", power: 2 },
+      eco: { label: "節水コマを取り付けてもらうよう相談する", power: 2 },
+      miss: { attr: "env", power: -3, label: "いつも通り、水を出しっぱなしにしてみがく" },
+      trivia: "歯みがき中に水を出しっぱなしにすると、1回で約6リットルもの水を無駄にしてしまうと言われているよ。" }
   ];
   var usedEvents = [];
 
@@ -402,9 +512,9 @@
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
-   "modal-event", "event-text", "event-btn-a", "event-btn-b",
-   "modal-battle", "battle-name", "battle-img", "battle-weak", "hp-text", "hp-fill",
-   "battle-result", "battle-live", "battle-hand", "btn-battle-next",
+   "modal-event", "event-text", "event-choices", "event-result", "event-badges", "event-trivia", "btn-event-next",
+   "modal-battle", "battle-name", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill",
+   "battle-result", "battle-live", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "diag-emoji", "diag-title", "diag-desc",
    "bar-env", "bar-soc", "bar-eco", "bv-env", "bv-soc", "bv-eco"
   ].forEach(function (id) { els[id] = document.getElementById(id); });
@@ -523,7 +633,8 @@
     state.hand.forEach(function (card) {
       var chip = document.createElement("div");
       chip.className = "hand-chip " + card.attr;
-      chip.textContent = ATTR_ICON[card.attr] + card.power;
+      var sign = card.power >= 0 ? "+" : "";
+      chip.innerHTML = "<span>" + ATTR_ICON[card.attr] + ATTR_LABEL[card.attr] + "</span><span>" + sign + card.power + "</span>";
       els["hand-strip"].appendChild(chip);
     });
   }
@@ -591,6 +702,13 @@
     }, 350);
   }
 
+  // ---- events (4択: env/soc/eco/miss、選ぶまで結果は非表示) ----
+  function applyStatDelta(attr, power) {
+    state[attr] += power;
+    pulse(attr);
+    updateStatPills();
+  }
+
   function openEvent() {
     var pool = events.filter(function (e) { return usedEvents.indexOf(e) === -1; });
     if (pool.length === 0) { usedEvents = []; pool = events; }
@@ -598,36 +716,79 @@
     usedEvents.push(card);
 
     els["event-text"].textContent = card.text;
-    renderChoiceBtn(els["event-btn-a"], card.a);
-    renderChoiceBtn(els["event-btn-b"], card.b);
+    els["event-result"].style.display = "none";
+    els["event-choices"].style.display = "block";
+    els["event-choices"].innerHTML = "";
 
-    function pick(choice) {
-      SFX.select();
-      grantCard(choice.attr, choice.power);
-      els["modal-event"].classList.remove("active");
-      els["btn-roll"].disabled = false;
-      els["roll-hint"].textContent = "つぎへすすもう";
+    var options = [
+      { attr: "env", power: card.env.power, label: card.env.label, miss: false },
+      { attr: "soc", power: card.soc.power, label: card.soc.label, miss: false },
+      { attr: "eco", power: card.eco.power, label: card.eco.label, miss: false },
+      { attr: card.miss.attr, power: card.miss.power, label: card.miss.label, miss: true }
+    ];
+    // shuffle so the miss option isn't always in the same slot
+    for (var i = options.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = options[i]; options[i] = options[j]; options[j] = tmp;
     }
-    els["event-btn-a"].onclick = function () { pick(card.a); };
-    els["event-btn-b"].onclick = function () { pick(card.b); };
+
+    options.forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.textContent = opt.label;
+      btn.onclick = function () { pickChoice(opt, card); };
+      els["event-choices"].appendChild(btn);
+    });
+
     els["modal-event"].classList.add("active");
   }
 
-  function renderChoiceBtn(btn, choice) {
-    btn.innerHTML = '<span>' + choice.label + '</span><span class="reward ' + choice.attr + '">' +
-      ATTR_ICON[choice.attr] + ATTR_LABEL[choice.attr] + " +" + choice.power + "</span>";
+  function pickChoice(opt, card) {
+    applyStatDelta(opt.attr, opt.power);
+    if (opt.miss) {
+      SFX.lose();
+    } else {
+      SFX.select();
+      state.cardSeq++;
+      state.hand.push({ id: state.cardSeq, attr: opt.attr, power: opt.power });
+      renderHand();
+    }
+    showEventResult(opt, card);
   }
 
-  function grantCard(attr, power) {
-    state[attr] += power;
-    pulse(attr);
-    state.cardSeq++;
-    state.hand.push({ id: state.cardSeq, attr: attr, power: power });
-    updateStatPills();
-    renderHand();
+  function showEventResult(opt, card) {
+    els["event-choices"].style.display = "none";
+    els["event-badges"].innerHTML = "";
+
+    var badge = document.createElement("span");
+    badge.className = "result-badge " + opt.attr;
+    var sign = opt.power >= 0 ? "+" : "";
+    badge.textContent = ATTR_ICON[opt.attr] + ATTR_LABEL[opt.attr] + " " + sign + opt.power;
+    els["event-badges"].appendChild(badge);
+
+    if (!opt.miss) {
+      var get = document.createElement("span");
+      get.className = "result-badge card-get";
+      get.textContent = "🃏 カードを1まい てにいれた!";
+      els["event-badges"].appendChild(get);
+    }
+
+    els["event-trivia"].textContent = card.trivia;
+    els["event-result"].style.display = "block";
   }
 
+  els["btn-event-next"].onclick = function () {
+    els["modal-event"].classList.remove("active");
+    els["btn-roll"].disabled = false;
+    els["roll-hint"].textContent = "つぎへすすもう";
+  };
+
+  // ---- battle ----
   var battleState = null;
+
+  function statusBaseDamage(m) {
+    return Math.max(1, Math.floor(state[m.weak] / 4) + 1);
+  }
 
   function openBattle(idx) {
     var m = monsters[idx];
@@ -638,6 +799,7 @@
     els["battle-weak"].className = "weak-badge " + m.weak;
     els["battle-weak"].style.background = "var(--" + (m.weak === "eco" ? "amber" : m.weak === "soc" ? "blue" : "green") + "-soft)";
     els["battle-weak"].style.color = "var(--" + (m.weak === "eco" ? "amber" : m.weak === "soc" ? "blue" : "green") + ")";
+    els["battle-desc"].textContent = m.desc || "";
     els["battle-result"].style.display = "none";
     els["battle-live"].style.display = "block";
     els["btn-battle-next"].style.display = "none";
@@ -653,15 +815,22 @@
 
   function renderBattleHand() {
     els["battle-hand"].innerHTML = "";
-    if (state.hand.length === 0) {
-      endBattle(false);
-      return;
-    }
+    var m = battleState.m;
+
+    var statusBtn = document.createElement("button");
+    statusBtn.className = "play-card status";
+    var sdmg = statusBaseDamage(m);
+    statusBtn.innerHTML = "ステータス<br>こうげき" + '<span class="pw">' + sdmg + "</span>";
+    statusBtn.onclick = function () { attackWithStatus(); };
+    els["battle-hand"].appendChild(statusBtn);
+
     state.hand.forEach(function (card) {
       var btn = document.createElement("button");
-      var isSuper = card.attr === battleState.m.weak;
+      var isSuper = card.attr === m.weak;
+      var dmg = statusBaseDamage(m) + card.power;
+      if (isSuper) dmg *= 2;
       btn.className = "play-card " + card.attr + (isSuper ? " super" : "");
-      btn.innerHTML = ATTR_ICON[card.attr] + ATTR_LABEL[card.attr] + '<span class="pw">' + card.power + "</span>";
+      btn.innerHTML = ATTR_ICON[card.attr] + ATTR_LABEL[card.attr] + '<span class="pw">' + dmg + "</span>";
       btn.onclick = function () { playCard(card); };
       els["battle-hand"].appendChild(btn);
     });
@@ -676,25 +845,46 @@
     setTimeout(function () { pop.remove(); }, 700);
   }
 
+  function hitAnim() {
+    els["battle-img"].classList.remove("hit");
+    void els["battle-img"].offsetWidth;
+    els["battle-img"].classList.add("hit");
+  }
+
+  function attackWithStatus() {
+    var m = battleState.m;
+    var dmg = statusBaseDamage(m);
+    battleState.hp -= dmg;
+
+    SFX.attack(false);
+    showDamagePop(dmg, false);
+    hitAnim();
+    updateHpUI();
+
+    if (battleState.hp <= 0) {
+      endBattle(true);
+    } else {
+      renderBattleHand();
+    }
+  }
+
   function playCard(card) {
-    var isSuper = card.attr === battleState.m.weak;
-    var dmg = isSuper ? card.power * 2 : card.power;
+    var m = battleState.m;
+    var isSuper = card.attr === m.weak;
+    var dmg = statusBaseDamage(m) + card.power;
+    if (isSuper) dmg *= 2;
     battleState.hp -= dmg;
     state.hand = state.hand.filter(function (c) { return c.id !== card.id; });
 
     SFX.attack(isSuper);
     showDamagePop(dmg, isSuper);
-    els["battle-img"].classList.remove("hit");
-    void els["battle-img"].offsetWidth;
-    els["battle-img"].classList.add("hit");
+    hitAnim();
 
     updateHpUI();
     renderHand();
 
     if (battleState.hp <= 0) {
       endBattle(true);
-    } else if (state.hand.length === 0) {
-      endBattle(false);
     } else {
       renderBattleHand();
     }
@@ -711,11 +901,15 @@
     } else {
       SFX.lose();
       els["battle-result"].className = "battle-result lose";
-      els["battle-result"].textContent = "力およばず…" + battleState.m.name + " は逃げていった。あつめたカードは次のバトルで活かそう";
+      els["battle-result"].textContent = "🏃 " + battleState.m.name + " からにげた。あつめたカードはそのまま手もとに残っている。";
     }
     updateStatPills();
     els["btn-battle-next"].style.display = "block";
   }
+
+  els["btn-battle-flee"].onclick = function () {
+    endBattle(false);
+  };
 
   els["btn-battle-next"].onclick = function () {
     els["modal-battle"].classList.remove("active");
