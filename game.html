@@ -208,6 +208,12 @@
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) rotate(-4deg)} 75%{transform:translateX(8px) rotate(4deg)} }
   .weak-badge { font-family: var(--pixel); font-size: 12px; padding: 3px 10px; border-radius: 4px; margin-top: 6px; font-weight: 700; border: 1px solid currentColor; position: relative; }
   .battle-desc { font-size: 12px; margin: 8px 0 4px; text-align: center; }
+
+  .sdgs-badge { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 6px; background: var(--paper); border: 1.5px solid var(--line-dim); border-radius: 4px; }
+  .sdgs-badge .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 3px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--pixel); font-size: 15px; font-weight: 700; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.35); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
+  .sdgs-badge .label { font-size: 11px; line-height: 1.4; color: var(--ink-soft); }
+  .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); }
   .hp-wrap { width: 100%; margin: 12px 0; }
   .hp-label { display: flex; justify-content: space-between; font-family: var(--pixel); font-size: 11.5px; color: var(--gold); margin-bottom: 4px; }
   .hp-track { height: 14px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1.5px solid var(--line-dim); }
@@ -344,6 +350,7 @@
   <div class="modal">
     <div class="kicker">かだいモンスター しゅつげん!</div>
     <h3 id="battle-name"></h3>
+    <div class="sdgs-badge" id="sdgs-badge"></div>
     <div class="battle-stage">
       <img id="battle-img" src="" alt="">
       <span class="weak-badge" id="battle-weak"></span>
@@ -430,6 +437,24 @@
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
+  // 公式SDGsカラーガイドラインに準拠した目標ごとの色(アイコン画像そのものは著作権上そのまま埋め込まず、色+番号のバッジとして自作)
+  var SDGS_COLORS = {
+    1: "#E5243B", 2: "#DDA63A", 3: "#4C9F38", 4: "#C5192D", 5: "#FF3A21",
+    6: "#26BDE2", 7: "#FCC30B", 8: "#A21942", 9: "#FD6925", 10: "#DD1367",
+    11: "#FD9D24", 12: "#BF8B2E", 13: "#3F7E44", 14: "#0A97D9", 15: "#56C02B",
+    16: "#00689D", 17: "#19486A"
+  };
+
+  function renderSdgsBadge(goalText) {
+    var m = /SDGs\s*(\d+)\s*[・:]\s*(.+)/.exec(goalText || "");
+    if (!m) { els["sdgs-badge"].innerHTML = ""; return; }
+    var num = m[1], title = m[2];
+    var color = SDGS_COLORS[num] || "#888";
+    els["sdgs-badge"].innerHTML =
+      '<span class="num" style="background:' + color + '">' + num + '</span>' +
+      '<span class="label"><b>SDGs ' + num + '</b>' + title + '</span>';
+  }
+
   var events = [
     { text: "コンビニでレジ袋、どうする?",
       env: { label: "持ってきたマイバッグに入れる", power: 3 },
@@ -513,7 +538,7 @@
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
    "modal-event", "event-text", "event-choices", "event-result", "event-badges", "event-trivia", "btn-event-next",
-   "modal-battle", "battle-name", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill",
+   "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill",
    "battle-result", "battle-live", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "diag-emoji", "diag-title", "diag-desc",
    "bar-env", "bar-soc", "bar-eco", "bv-env", "bv-soc", "bv-eco"
@@ -794,6 +819,7 @@
     var m = monsters[idx];
     battleState = { m: m, hp: m.hp, maxHp: m.hp };
     els["battle-name"].textContent = m.name;
+    renderSdgsBadge(m.goal);
     els["battle-img"].src = m.img;
     els["battle-weak"].textContent = "よわてん: " + ATTR_ICON[m.weak] + ATTR_LABEL[m.weak];
     els["battle-weak"].className = "weak-badge " + m.weak;
