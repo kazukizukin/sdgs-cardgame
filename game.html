@@ -254,7 +254,6 @@
   .sdgs-badge { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 6px; background: var(--paper); border: 1.5px solid var(--line-dim); border-radius: 4px; }
   .sdgs-badge .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;
     font-family: var(--pixel); font-size: 15px; font-weight: 700; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.35); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
-  .sdgs-badge .num img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .sdgs-badge .label { flex: 1; min-width: 0; font-size: 11px; line-height: 1.4; color: var(--ink-soft); overflow-wrap: break-word; }
   .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); overflow-wrap: break-word; }
   .sdgs-credit { font-size: 10px; color: var(--ink-soft); text-align: center; margin: 6px 0 0; }
@@ -590,8 +589,14 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "2.4";
+  var GAME_VERSION = "2.6";
   var CHANGELOG = [
+    { version: "2.6", date: "2026-08-04", notes: [
+      "権利リスクを避けるため、国連公式のSDGsアイコン画像の使用をやめ、目標ごとに色分けしたオリジナルの番号バッジ(ドット絵風)に差し替え。図鑑・イベント結果・バトル画面すべてに反映"
+    ] },
+    { version: "2.5", date: "2026-08-04", notes: [
+      "SDGsアイコンのクレジット表記を修正。国連公式のガイドラインを確認したところ「パブリックドメイン」という表記は不正確だったため、「デザイン改変なしで使用」「国連の公式認定・提携ではない非営利の学習プロジェクト」という正確な表現に変更"
+    ] },
     { version: "2.4", date: "2026-08-04", notes: [
       "SDGs図鑑に「SDGsってなに?」というわかりやすい解説欄を追加。17の目標の一覧だけでなく、SDGsそのものの意味を先に読めるように"
     ] },
@@ -702,9 +707,17 @@
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
-  function sdgsIconImg(num) {
-    var padded = num < 10 ? "0" + num : String(num);
-    return '<img src="assets/sdgs/sdgs_' + padded + '.png" alt="SDGs ' + num + '">';
+  // 自作のドット絵風バッジ(公式SDGsロゴ・アイコンは使用しない。目標ごとに色分けした番号バッジのみ)
+  var SDGS_COLORS = {
+    1: "#b52a2a", 2: "#b55b2a", 3: "#b58c2a", 4: "#adb52a", 5: "#7cb52a",
+    6: "#4bb52a", 7: "#2ab53b", 8: "#2ab56c", 9: "#2ab59d", 10: "#2a9db5",
+    11: "#2a6cb5", 12: "#2a3bb5", 13: "#4b2ab5", 14: "#7c2ab5", 15: "#ad2ab5",
+    16: "#b52a8c", 17: "#b52a5b"
+  };
+
+  function sdgsBadgeHtml(num) {
+    var color = SDGS_COLORS[num] || "#555";
+    return '<span class="num" style="background:' + color + '">' + num + '</span>';
   }
 
   function renderSdgsBadge(goalText) {
@@ -712,7 +725,7 @@
     if (!m) { els["sdgs-badge"].innerHTML = ""; return; }
     var num = Number(m[1]), title = m[2];
     els["sdgs-badge"].innerHTML =
-      '<span class="num">' + sdgsIconImg(num) + '</span>' +
+      sdgsBadgeHtml(num) +
       '<span class="label"><b>SDGs ' + num + '</b>' + title + '</span>';
   }
 
@@ -740,11 +753,11 @@
   function renderSdgsList() {
     els["sdgs-list"].innerHTML = SDGS_GOALS.map(function (g) {
       return '<div class="sdgs-badge sdgs-list-item">' +
-        '<span class="num">' + sdgsIconImg(g.num) + '</span>' +
+        sdgsBadgeHtml(g.num) +
         '<span class="label"><b>SDGs ' + g.num + '・' + g.title + '</b>' + g.desc + '</span>' +
         '</div>';
     }).join("") +
-    '<p class="sdgs-credit">アイコン出典: 国連(United Nations)・Wikimedia Commons(パブリックドメイン)</p>';
+    '<p class="sdgs-credit">目標の番号バッジは本ゲームのオリジナルデザインです(国連公式ロゴ・アイコンは使用していません)。本ゲームは大学の課題として制作した非営利・教育目的の作品で、国連やSDGs推進機関の公式な認定・提携を受けたものではありません。</p>';
   }
 
   var events = [
@@ -819,7 +832,13 @@
       soc: { label: "家族にも『一緒に止めよう』と声をかける", power: 2 },
       eco: { label: "節水コマを取り付けてもらうよう相談する", power: 2 },
       miss: { attr: "env", power: -3, label: "いつも通り、水を出しっぱなしにしてみがく" },
-      trivia: "歯みがき中に水を出しっぱなしにすると、1回で約6リットルもの水を無駄にしてしまうと言われているよ。" }
+      trivia: "歯みがき中に水を出しっぱなしにすると、1回で約6リットルもの水を無駄にしてしまうと言われているよ。" },
+    { text: "家で読み終わった新聞紙の処理を任された",
+      env:{label:"新聞紙を古紙回収に出す",power:3},
+      soc:{label:"習字をしてる人に新聞紙をあげる",power:2},
+      eco:{label:"新聞紙で作品を作り、メルカリで売る",power:3},
+      miss:{attr: "env",power:-3,label:"そのまま燃えるゴミに出す"},
+      trivia:"新聞紙はリサイクルされると、再び新聞紙や段ボールなどに生まれ変わることができるんだよ。"}, 
   ];
   var usedEvents = [];
 
