@@ -149,7 +149,7 @@
 
   /* ===== hand list (sidebar) ===== */
   .hand-strip { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; padding: 2px 0; }
-  .hand-strip:empty::after { content: "カードはまだありません"; font-size: 11px; color: var(--ink-soft); font-family: var(--mono); }
+  .hand-strip:empty::after { content: "こうげきカードはまだありません"; font-size: 11px; color: var(--ink-soft); font-family: var(--mono); }
   .hand-chip {
     flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px;
     font-family: var(--mono); font-size: 12px; font-weight: 700; border: 1.5px solid; background: var(--paper);
@@ -187,13 +187,16 @@
   .modal .kicker { font-family: var(--pixel); font-size: 11px; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 6px; }
   .modal h3 { font-family: var(--pixel); font-size: 19px; margin: 0 0 12px 0; font-weight: 700; text-wrap: balance; color: var(--ink); }
   .choice-btn {
-    display: block; width: 100%; text-align: left; background: var(--paper);
+    display: flex; gap: 8px; width: 100%; text-align: left; background: var(--paper);
     border: 1.5px solid var(--line-dim); border-radius: 4px; padding: 13px 15px; margin-bottom: 9px; font-size: 14px; font-weight: 700;
     color: var(--ink);
   }
   .choice-btn:active { background: var(--green-soft); border-color: var(--green); }
+  .choice-btn .num { color: var(--gold); flex-shrink: 0; }
 
   /* ===== event result ===== */
+  .picked-choice { font-size: 14px; font-weight: 700; color: var(--ink); background: var(--paper);
+    border: 1.5px solid var(--line-dim); border-left: 4px solid var(--gold); border-radius: 4px; padding: 10px 12px; margin-bottom: 10px; }
   .event-badges { display: flex; flex-wrap: wrap; margin-bottom: 4px; }
   .result-badge {
     display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-weight: 700; font-size: 12px;
@@ -203,6 +206,8 @@
   .result-badge.soc { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
   .result-badge.eco { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
   .result-badge.card-get { background: var(--panel2); color: var(--gold); border-color: var(--line); }
+  .trivia-box { font-size: 15px; line-height: 1.75; color: var(--ink); background: var(--amber-soft);
+    border: 1.5px solid var(--amber); border-radius: 4px; padding: 12px 14px; margin: 10px 0; }
 
   /* ===== battle ===== */
   .battle-stage { display: flex; flex-direction: column; align-items: center; margin: 10px 0 16px; position: relative; }
@@ -252,6 +257,8 @@
   .play-card.eco { border-color: var(--amber); color: var(--amber); }
   .play-card.status { border-color: var(--gold); color: var(--gold); }
   .play-card .pw { display: block; font-family: var(--mono); font-size: 17px; margin-top: 2px; }
+  .play-card .uses { position: absolute; top: -9px; right: -6px; background: var(--gold); color: #241c3c; font-size: 9.5px;
+    padding: 1px 6px; border-radius: 8px; font-family: var(--mono); font-weight: 700; }
   .play-card.super::before { content: "とくこう!"; position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
     background: var(--gold); color: #241c3c; font-size: 8.5px; padding: 1px 6px; border-radius: 4px; font-family: var(--pixel); font-weight: 700; }
   .btn-flee { margin-top: 4px; }
@@ -293,8 +300,8 @@
     <div class="rules">
       <b>あそびかた</b><br>
       ①「すすむ」でコマを進める<br>
-      ②止まったマスで4つの選択肢から1つを選ぶ→選ぶまで何が起こるかは分からない、当たりならステータスとカードが手に入る、まれにハズレもある<br>
-      ③モンスターマスでは、手札のカードか「ステータスこうげき」で戦う。攻撃するたびモンスターも反撃してくるので、あなたのHPが0になる前にたおそう<br>
+      ②止まったマスで4つの選択肢から1つを選ぶ→選ぶまで何が起こるかは分からない、当たりならステータスとこうげきカードが手に入る、まれにハズレもある<br>
+      ③モンスターマスでは、手札のこうげきカードか「こうげき」(2回まで)で戦う。攻撃するたびモンスターも反撃してくるので、あなたのHPが0になる前にたおそう<br>
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
@@ -321,7 +328,7 @@
           <div class="stat-pill soc" id="pill-soc"><span class="ic">🤝</span><span class="value" id="val-soc">0</span></div>
           <div class="stat-pill eco" id="pill-eco"><span class="ic">💰</span><span class="value" id="val-eco">0</span></div>
         </div>
-        <div class="hand-label">てもちカード</div>
+        <div class="hand-label">てもちのこうげきカード</div>
         <div class="hand-strip" id="hand-strip"></div>
       </div>
     </div>
@@ -355,8 +362,9 @@
     <h3 id="event-text"></h3>
     <div id="event-choices"></div>
     <div id="event-result" style="display:none;">
+      <div class="picked-choice" id="picked-choice"></div>
       <div class="event-badges" id="event-badges"></div>
-      <p id="event-trivia"></p>
+      <p class="trivia-box" id="event-trivia"></p>
       <button class="btn-primary" id="btn-event-next">つぎへすすむ</button>
     </div>
   </div>
@@ -372,7 +380,7 @@
       <img id="battle-img" src="" alt="">
       <span class="weak-badge" id="battle-weak"></span>
     </div>
-    <p class="battle-desc" id="battle-desc"></p>
+    <p class="battle-desc trivia-box" id="battle-desc"></p>
     <div class="hp-wrap">
       <div class="hp-label"><span>モンスターHP</span><span id="hp-text">0 / 0</span></div>
       <div class="hp-track"><div class="hp-fill" id="hp-fill" style="width:100%"></div></div>
@@ -384,7 +392,7 @@
     <div id="battle-result" style="display:none;"></div>
     <div id="battle-live">
       <div class="turn-indicator" id="turn-indicator">ターン 1 ・ あなたの番</div>
-      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう</div>
+      <div class="battle-hand-label">こうげきカードか「こうげき」でたたかおう</div>
       <div class="battle-hand" id="battle-hand"></div>
       <button class="btn-secondary btn-flee" id="btn-battle-flee">にげる</button>
     </div>
@@ -451,8 +459,16 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "1.5";
+  var GAME_VERSION = "1.6";
   var CHANGELOG = [
+    { version: "1.6", date: "2026-08-04", notes: [
+      "できごとの豆知識・モンスター解説を見やすい色の枠で表示するように改善(文字も少し大きく)",
+      "手札のカードを「こうげきカード」、「ステータスこうげき」を「こうげき」という表示名に変更",
+      "「こうげき」(ステータス攻撃)は1回のバトルにつき2回までに制限。残り回数を「2/2」のように表示し、0になったら選択肢から消えるように",
+      "モンスターを倒したときのメッセージを「ぜんぶのステータス+1」に変更",
+      "できごとの結果表示に、自分が選んだ選択肢の内容を追加表示",
+      "できごとの選択肢に「1.」〜「4.」の番号を追加"
+    ] },
     { version: "1.5", date: "2026-08-04", notes: [
       "サイコロが1〜6の目すべて出るように修正(これまで1〜2しか出ていなかった)",
       "コマがマスを1つずつホップして進む演出を追加(効果音つき)",
@@ -603,7 +619,7 @@
    "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
-   "modal-event", "event-text", "event-choices", "event-result", "event-badges", "event-trivia", "btn-event-next",
+   "modal-event", "event-text", "event-choices", "event-result", "picked-choice", "event-badges", "event-trivia", "btn-event-next",
    "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
    "battle-result", "battle-live", "turn-indicator", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "diag-emoji", "diag-title", "diag-desc",
@@ -847,10 +863,10 @@
       var tmp = options[i]; options[i] = options[j]; options[j] = tmp;
     }
 
-    options.forEach(function (opt) {
+    options.forEach(function (opt, idx) {
       var btn = document.createElement("button");
       btn.className = "choice-btn";
-      btn.textContent = opt.label;
+      btn.innerHTML = '<span class="num">' + (idx + 1) + '.</span><span>' + opt.label + '</span>';
       btn.onclick = function () { pickChoice(opt, card); };
       els["event-choices"].appendChild(btn);
     });
@@ -873,6 +889,7 @@
 
   function showEventResult(opt, card) {
     els["event-choices"].style.display = "none";
+    els["picked-choice"].textContent = "えらんだのは → " + opt.label;
     els["event-badges"].innerHTML = "";
 
     var badge = document.createElement("span");
@@ -884,7 +901,7 @@
     if (!opt.miss) {
       var get = document.createElement("span");
       get.className = "result-badge card-get";
-      get.textContent = "🃏 カードを1まい てにいれた!";
+      get.textContent = "🃏 こうげきカードを1まい てにいれた!";
       els["event-badges"].appendChild(get);
     }
 
@@ -900,6 +917,7 @@
 
   // ---- battle ----
   var battleState = null;
+  var STATUS_ATTACK_MAX = 2;
 
   function statusBaseDamage(m) {
     return Math.max(1, Math.floor(state[m.weak] / 4) + 1);
@@ -907,7 +925,7 @@
 
   function openBattle(idx) {
     var m = monsters[idx];
-    battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP, turn: 1 };
+    battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP, turn: 1, statusUses: STATUS_ATTACK_MAX };
     els["battle-name"].textContent = m.name;
     renderSdgsBadge(m.goal);
     els["battle-img"].src = m.img;
@@ -954,12 +972,15 @@
     els["battle-hand"].innerHTML = "";
     var m = battleState.m;
 
-    var statusBtn = document.createElement("button");
-    statusBtn.className = "play-card status";
-    var sdmg = statusBaseDamage(m);
-    statusBtn.innerHTML = "ステータス<br>こうげき" + '<span class="pw">' + sdmg + "</span>";
-    statusBtn.onclick = function () { attackWithStatus(); };
-    els["battle-hand"].appendChild(statusBtn);
+    if (battleState.statusUses > 0) {
+      var statusBtn = document.createElement("button");
+      statusBtn.className = "play-card status";
+      var sdmg = statusBaseDamage(m);
+      statusBtn.innerHTML = "こうげき" + '<span class="pw">' + sdmg + "</span>" +
+        '<span class="uses">' + battleState.statusUses + "/" + STATUS_ATTACK_MAX + "</span>";
+      statusBtn.onclick = function () { attackWithStatus(); };
+      els["battle-hand"].appendChild(statusBtn);
+    }
 
     state.hand.forEach(function (card) {
       var btn = document.createElement("button");
@@ -1005,9 +1026,11 @@
   }
 
   function attackWithStatus() {
+    if (battleState.statusUses <= 0) return;
     var m = battleState.m;
     var dmg = statusBaseDamage(m);
     battleState.hp -= dmg;
+    battleState.statusUses--;
 
     SFX.attack(false);
     showDamagePop(dmg, false);
@@ -1069,7 +1092,7 @@
       SFX.win();
       state.env += 1; state.soc += 1; state.eco += 1;
       els["battle-result"].className = "battle-result win";
-      els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんステータス+1";
+      els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんぶのステータス+1";
     } else {
       SFX.lose();
       els["battle-result"].className = "battle-result lose";
