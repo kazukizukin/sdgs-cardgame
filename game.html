@@ -170,7 +170,8 @@
   .sq.goal { border-color: var(--gold); background: linear-gradient(180deg,#3a2f14,#241c3c); font-size: 20px; box-shadow: 2px 2px 0 rgba(232,198,90,0.4); }
   .sq.warp { border-color: var(--blue); background: var(--blue-soft); }
   .sq.slip { border-color: #8a6fae; background: #2a2044; }
-  .sq.villager { border-color: var(--gold); background: #3a2a18; box-shadow: 0 0 8px rgba(232,198,90,0.35); }
+  .sq.hiddenpath { border-color: #6b4a9e; background: #241a3d; }
+  .sq.hiddenboss { border-color: #e0435a; background: #3a1420; box-shadow: 0 0 10px rgba(224,67,90,0.5); font-size: 20px; }
   .sq.current { box-shadow: 0 0 0 3px var(--gold); }
   .sq .num { position: absolute; bottom: 1px; right: 3px; font-family: var(--mono); font-size: 7px; color: var(--ink-soft); opacity: 0.5; }
   .token-marker { position: absolute; top: -20px; left: 50%; transform: translateX(-50%) scale(0); font-size: 20px; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
@@ -251,10 +252,12 @@
   .battle-desc { font-size: 12px; margin: 8px 0 4px; text-align: center; }
 
   .sdgs-badge { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 6px; background: var(--paper); border: 1.5px solid var(--line-dim); border-radius: 4px; }
-  .sdgs-badge .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 3px; display: flex; align-items: center; justify-content: center;
+  .sdgs-badge .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;
     font-family: var(--pixel); font-size: 15px; font-weight: 700; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.35); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
-  .sdgs-badge .label { font-size: 11px; line-height: 1.4; color: var(--ink-soft); }
-  .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); }
+  .sdgs-badge .num img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sdgs-badge .label { flex: 1; min-width: 0; font-size: 11px; line-height: 1.4; color: var(--ink-soft); overflow-wrap: break-word; }
+  .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); overflow-wrap: break-word; }
+  .sdgs-credit { font-size: 10px; color: var(--ink-soft); text-align: center; margin: 6px 0 0; }
   .hp-wrap { width: 100%; margin: 12px 0; position: relative; }
   .hp-wrap.player-hp { margin-top: 4px; }
   .hp-label { display: flex; justify-content: space-between; font-family: var(--pixel); font-size: 11.5px; color: var(--gold); margin-bottom: 4px; }
@@ -446,8 +449,8 @@
   <div class="modal">
     <div class="kicker">なぞの村人</div>
     <h3>🧑‍🌾 村人が話しかけてきた</h3>
-    <p>「……旅人さんや。実はこの先に、うわさの裏ボスが棲みついておるんじゃ。とても強いらしいが……挑んでみるかい?」</p>
-    <button class="btn-primary" id="btn-villager-yes">🐉 裏ボスに挑戦する</button>
+    <p>「おお、ゴールおめでとう!……実はの、この奥にはまだ誰も知らない隠し道があってな。うわさの裏ボスが棲みついておるんじゃ。とても強いらしいが……進んでみるかい?」</p>
+    <button class="btn-primary" id="btn-villager-yes">🐉 隠し道を進む</button>
     <button class="btn-secondary" id="btn-villager-no">やめておく</button>
   </div>
 </div>
@@ -532,6 +535,10 @@
     battle: { tempo: 190, notes: [
       [220, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04], [262, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04],
       [196, 0.16, "sawtooth", 0.04], [196, 0.16, "sawtooth", 0.04], [233, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04]
+    ] },
+    hidden: { tempo: 360, notes: [
+      [294, 0.5, "sine", 0.04], [349, 0.5, "sine", 0.04], null, [262, 0.6, "sine", 0.04],
+      [220, 0.5, "sine", 0.04], null, [349, 0.5, "sine", 0.04], null
     ] }
   };
   var bgmTimer = null;
@@ -578,8 +585,14 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "2.2";
+  var GAME_VERSION = "2.3";
   var CHANGELOG = [
+    { version: "2.3", date: "2026-08-04", notes: [
+      "村人をゴールマスに移動。ゴールに着くと村人に話しかけられ、そこから隠しステージ(5マスの隠し道)に進めるように変更",
+      "隠しステージには専用のBGMを追加",
+      "SDGs図鑑の説明文がはみ出す不具合を修正",
+      "SDGsのマークを、国連(Wikimedia Commons/パブリックドメイン)の公式アイコン画像に差し替え"
+    ] },
     { version: "2.2", date: "2026-08-04", notes: [
       "タイトル画面に「SDGs17の目標をみる」ボタンを追加。17の目標すべてを、目標ごとの色分けバッジと説明つきで見られる図鑑を追加"
     ] },
@@ -659,8 +672,9 @@
   var warps = { 9: 11 };
   var slips = { 21: 19 };
 
-  // ---- 隠しステージ: 村人マス→挑戦すると裏ボス戦 ----
-  var villagerPos = 15;
+  // ---- 隠しステージ: ゴールで村人に話しかけると挑戦できる裏ボスへの道 ----
+  var HIDDEN_ROWS = 1, HIDDEN_COLS = 5;
+  var HIDDEN_GOAL = HIDDEN_ROWS * HIDDEN_COLS; // 5マス進んだ先に裏ボス
   var secretBoss = {
     name: "カオス・ドラゴニア", goal: "SDGs 全目標・複合的な危機", hp: 24, atk: 5, img: "assets/monsters/ondanka_dragon.png",
     desc: "かんきょう・しゃかい・けいざい、すべての課題が絡みあって生まれたという、うわさの裏ボス。いちばん育てた力が弱点になる。"
@@ -680,21 +694,17 @@
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
-  // 公式SDGsカラーガイドラインに準拠した目標ごとの色(アイコン画像そのものは著作権上そのまま埋め込まず、色+番号のバッジとして自作)
-  var SDGS_COLORS = {
-    1: "#E5243B", 2: "#DDA63A", 3: "#4C9F38", 4: "#C5192D", 5: "#FF3A21",
-    6: "#26BDE2", 7: "#FCC30B", 8: "#A21942", 9: "#FD6925", 10: "#DD1367",
-    11: "#FD9D24", 12: "#BF8B2E", 13: "#3F7E44", 14: "#0A97D9", 15: "#56C02B",
-    16: "#00689D", 17: "#19486A"
-  };
+  function sdgsIconImg(num) {
+    var padded = num < 10 ? "0" + num : String(num);
+    return '<img src="assets/sdgs/sdgs_' + padded + '.png" alt="SDGs ' + num + '">';
+  }
 
   function renderSdgsBadge(goalText) {
     var m = /SDGs\s*(\d+)\s*[・:]\s*(.+)/.exec(goalText || "");
     if (!m) { els["sdgs-badge"].innerHTML = ""; return; }
-    var num = m[1], title = m[2];
-    var color = SDGS_COLORS[num] || "#888";
+    var num = Number(m[1]), title = m[2];
     els["sdgs-badge"].innerHTML =
-      '<span class="num" style="background:' + color + '">' + num + '</span>' +
+      '<span class="num">' + sdgsIconImg(num) + '</span>' +
       '<span class="label"><b>SDGs ' + num + '</b>' + title + '</span>';
   }
 
@@ -721,12 +731,12 @@
 
   function renderSdgsList() {
     els["sdgs-list"].innerHTML = SDGS_GOALS.map(function (g) {
-      var color = SDGS_COLORS[g.num];
       return '<div class="sdgs-badge sdgs-list-item">' +
-        '<span class="num" style="background:' + color + '">' + g.num + '</span>' +
+        '<span class="num">' + sdgsIconImg(g.num) + '</span>' +
         '<span class="label"><b>SDGs ' + g.num + '・' + g.title + '</b>' + g.desc + '</span>' +
         '</div>';
-    }).join("");
+    }).join("") +
+    '<p class="sdgs-credit">アイコン出典: 国連(United Nations)・Wikimedia Commons(パブリックドメイン)</p>';
   }
 
   var events = [
@@ -805,7 +815,7 @@
   ];
   var usedEvents = [];
 
-  var state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false };
+  var state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false, stage: "main" };
 
   var els = {};
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
@@ -830,8 +840,11 @@
 
   // ---- board: snake layout, row0 (squares1-4) at bottom ----
   function squareMeta(pos) {
+    if (state.stage === "hidden") {
+      if (pos === HIDDEN_GOAL) return { type: "hiddenboss" };
+      return { type: "hiddenpath" };
+    }
     if (pos === GOAL_POS) return { type: "goal" };
-    if (pos === villagerPos) return { type: "villager" };
     if (specials[pos] !== undefined) return { type: "monster", idx: specials[pos] };
     if (warps[pos] !== undefined) return { type: "warp" };
     if (slips[pos] !== undefined) return { type: "slip" };
@@ -840,14 +853,17 @@
 
   function buildBoard() {
     els["board-scroll"].innerHTML = "";
+    var rows = state.stage === "hidden" ? HIDDEN_ROWS : ROWS;
+    var cols = state.stage === "hidden" ? HIDDEN_COLS : COLS;
     var rowsData = [];
-    for (var r = ROWS - 1; r >= 0; r--) {
-      var base = r * COLS + 1;
-      var nums = [base, base + 1, base + 2, base + 3];
+    for (var r = rows - 1; r >= 0; r--) {
+      var base = r * cols + 1;
+      var nums = [];
+      for (var c0 = 0; c0 < cols; c0++) nums.push(base + c0);
       if (r % 2 === 1) nums = nums.slice().reverse(); // odd rows R→L
       rowsData.push({ r: r, nums: nums });
     }
-    // DOM order: top row (r=ROWS-1) first ... bottom row (r=0) last
+    // DOM order: top row (r=rows-1) first ... bottom row (r=0) last
     rowsData.forEach(function (rowData, i) {
       var rowEl = document.createElement("div");
       rowEl.className = "board-row";
@@ -859,10 +875,10 @@
       // connector to next row below (skip after last/bottom row)
       if (i < rowsData.length - 1) {
         var isEvenRow = rowData.r % 2 === 0; // rendering direction of current row
-        var connSlot = isEvenRow ? COLS - 1 : 0; // even row (L→R) ends right; odd row (R→L) ends left
+        var connSlot = isEvenRow ? cols - 1 : 0; // even row (L→R) ends right; odd row (R→L) ends left
         var connEl = document.createElement("div");
         connEl.className = "connector-row";
-        for (var c = 0; c < COLS; c++) {
+        for (var c = 0; c < cols; c++) {
           var slot = document.createElement("div");
           slot.className = "connector-slot";
           var bar = document.createElement("div");
@@ -894,9 +910,12 @@
     } else if (meta.type === "slip") {
       sq.classList.add("slip");
       sq.textContent = "🕳️";
-    } else if (meta.type === "villager") {
-      sq.classList.add("villager");
-      sq.textContent = "🧑‍🌾";
+    } else if (meta.type === "hiddenboss") {
+      sq.classList.add("hiddenboss");
+      sq.textContent = "🐉";
+    } else if (meta.type === "hiddenpath") {
+      sq.classList.add("hiddenpath");
+      sq.textContent = "🌲";
     } else {
       sq.textContent = "🎁";
     }
@@ -952,19 +971,22 @@
   }
 
   function nextSpecialPos(from) {
-    var keys = Object.keys(specials).map(Number).concat([GOAL_POS, villagerPos]).filter(function (p) { return p > from; });
+    if (state.stage === "hidden") return HIDDEN_GOAL;
+    var keys = Object.keys(specials).map(Number).concat([GOAL_POS]).filter(function (p) { return p > from; });
     return Math.min.apply(null, keys);
   }
 
   var DICE_FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 
   function goalHint() {
-    var left = GOAL_POS - state.pos;
+    var goal = state.stage === "hidden" ? HIDDEN_GOAL : GOAL_POS;
+    var left = goal - state.pos;
     return left > 0 ? "つぎへすすもう(ゴールまであと" + left + "マス)" : "つぎへすすもう";
   }
 
   function roll() {
-    if (state.moving || state.pos >= GOAL_POS) return;
+    var goal = state.stage === "hidden" ? HIDDEN_GOAL : GOAL_POS;
+    if (state.moving || state.pos >= goal) return;
     state.moving = true;
     els["btn-roll"].disabled = true;
     var finalDice = 1 + Math.floor(Math.random() * 6);
@@ -1015,8 +1037,12 @@
 
   function resolveSquare(pos) {
     state.moving = false;
-    if (pos === GOAL_POS) { SFX.goal(); showResult(); return; }
-    if (pos === villagerPos) { openVillager(); return; }
+    if (state.stage === "hidden") {
+      if (pos === HIDDEN_GOAL) { openBattle(resolveSecretBoss()); return; }
+      openEvent();
+      return;
+    }
+    if (pos === GOAL_POS) { SFX.goal(); openVillager(); return; }
     if (specials[pos] !== undefined) { openBattle(monsters[specials[pos]]); return; }
     if (warps[pos] !== undefined) { doWarp(pos, warps[pos], true); return; }
     if (slips[pos] !== undefined) { doWarp(pos, slips[pos], false); return; }
@@ -1025,6 +1051,18 @@
 
   function openVillager() {
     els["modal-villager"].classList.add("active");
+  }
+
+  function enterHiddenStage() {
+    state.stage = "hidden";
+    state.pos = 0;
+    setBgm("hidden");
+    buildBoard();
+    placeToken(0, false);
+    els["roll-hint"].textContent = "隠し道を進もう…(ゴールまであと" + HIDDEN_GOAL + "マス)";
+    els["btn-roll"].disabled = false;
+    els["dice-face"].textContent = "🎲";
+    els["dice-face"].classList.remove("rolling", "settle");
   }
 
   function doWarp(from, to, isForward) {
@@ -1337,6 +1375,10 @@
 
   els["btn-battle-next"].onclick = function () {
     els["modal-battle"].classList.remove("active");
+    if (state.stage === "hidden") {
+      showResult();
+      return;
+    }
     els["btn-roll"].disabled = false;
     els["roll-hint"].textContent = goalHint();
     setBgm("main");
@@ -1344,12 +1386,11 @@
 
   els["btn-villager-yes"].onclick = function () {
     els["modal-villager"].classList.remove("active");
-    openBattle(resolveSecretBoss());
+    enterHiddenStage();
   };
   els["btn-villager-no"].onclick = function () {
     els["modal-villager"].classList.remove("active");
-    els["btn-roll"].disabled = false;
-    els["roll-hint"].textContent = goalHint();
+    showResult();
   };
 
   // ---- diagnosis: 主属性×副属性の組み合わせで7ジョブに分岐 ----
@@ -1410,7 +1451,7 @@
 
   function resetGame() {
     setBgm("main");
-    state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false };
+    state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false, stage: "main" };
     usedEvents = [];
     updateStatPills();
     updateLevelUI();
