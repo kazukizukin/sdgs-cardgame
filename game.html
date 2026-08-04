@@ -123,6 +123,29 @@
   .stat-pill.soc .value { color: var(--blue); }
   .stat-pill.eco .value { color: var(--amber); }
 
+  .level-pill {
+    background: linear-gradient(180deg, #3a2f14, var(--paper)); border: 1.5px solid var(--gold); border-radius: 4px;
+    padding: 8px 10px; text-align: center; display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+    margin-bottom: 6px; transition: transform 0.25s;
+  }
+  .level-pill.pulse { transform: scale(1.06); }
+  .level-pill .ic { font-size: 15px; }
+  .level-pill .value { font-family: var(--pixel); font-size: 15px; font-weight: 700; color: var(--gold); }
+  .level-pill .atk { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); margin-left: auto; }
+  .levelup-pop {
+    position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.6); font-family: var(--pixel); font-size: 22px;
+    color: var(--gold); text-shadow: 0 0 16px rgba(232,198,90,0.7), 0 2px 3px rgba(0,0,0,0.6); background: rgba(23,16,41,0.9);
+    border: 2px solid var(--gold); border-radius: 8px; padding: 14px 22px; pointer-events: none; z-index: 20; opacity: 0;
+    animation: levelup 1.4s ease forwards;
+  }
+  @keyframes levelup {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    18% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    30% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+  }
+
   .hand-label { font-family: var(--pixel); font-size: 11.5px; color: var(--gold); letter-spacing: 0.06em; }
 
   /* ===== board (snake) ===== */
@@ -305,7 +328,7 @@
       <b>あそびかた</b><br>
       ①「すすむ」でコマを進める<br>
       ②止まったマスで4つの選択肢から1つを選ぶ→選ぶまで何が起こるかは分からない、当たりならステータスとこうげきカードが手に入る、まれにハズレもある<br>
-      ③モンスターマスでは、手札のこうげきカードか「こうげき」(2回まで)で戦う。攻撃するたびモンスターも反撃してくるので、あなたのHPが0になる前にたおそう<br>
+      ③モンスターマスでは、手札のこうげきカードか「こうげき」(2回まで)で戦う。攻撃するたびモンスターも反撃してくるので、あなたのHPが0になる前にたおそう。たおすとレベルアップしてこうげき力が上がる<br>
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
@@ -327,6 +350,7 @@
         </div>
       </div>
       <div class="sidebar">
+        <div class="level-pill" id="pill-level"><span class="ic">⭐</span><span class="value" id="val-level">Lv.1</span><span class="atk" id="val-atk">こうげき力 1</span></div>
         <div class="stat-row">
           <div class="stat-pill env" id="pill-env"><span class="ic">🌿</span><span class="value" id="val-env">0</span></div>
           <div class="stat-pill soc" id="pill-soc"><span class="ic">🤝</span><span class="value" id="val-soc">0</span></div>
@@ -457,7 +481,8 @@
     goal: function () { [523, 659, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * 0.1, 0.22, "triangle", 0.14); }); },
     warp: function () { tone(600, 0, 0.05, "sine", 0.1); tone(900, 0.05, 0.05, "sine", 0.1); tone(1300, 0.1, 0.09, "sine", 0.12); },
     slip: function () { tone(480, 0, 0.09, "sawtooth", 0.09); tone(300, 0.08, 0.16, "sawtooth", 0.09); },
-    hurt: function () { tone(220, 0, 0.1, "sawtooth", 0.13); tone(160, 0.08, 0.14, "sawtooth", 0.1); }
+    hurt: function () { tone(220, 0, 0.1, "sawtooth", 0.13); tone(160, 0.08, 0.14, "sawtooth", 0.1); },
+    levelup: function () { [660, 880, 1100, 1320].forEach(function (f, i) { tone(f, i * 0.08, 0.18, "square", 0.13); }); }
   };
 
   var GOAL_POS = 32;
@@ -465,8 +490,13 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "1.8";
+  var GAME_VERSION = "1.9";
   var CHANGELOG = [
+    { version: "1.9", date: "2026-08-04", notes: [
+      "モンスターを倒すとレベルアップする仕組みを追加。レベルが上がるほど「こうげき力」が増えて攻撃ダメージが上がる",
+      "サイドバーにレベル・こうげき力を表示、バトル中のターン表示にも現在レベルを表示",
+      "レベルアップ時に演出(LEVEL UPポップアップ・専用の効果音)を追加"
+    ] },
     { version: "1.8", date: "2026-08-04", notes: [
       "診断結果を「主属性×副属性」の組み合わせで7ジョブに拡張(これまでの4種類から大幅増)、ジョブに合わせたキャラクターアバターを追加",
       "結果画面に4つ目のパラメータ「そうごうりょく」を追加",
@@ -627,13 +657,14 @@
   ];
   var usedEvents = [];
 
-  var state = { pos: 0, env: 0, soc: 0, eco: 0, hand: [], moving: false, cardSeq: 0 };
+  var state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0 };
 
   var els = {};
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
    "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
+   "val-level", "val-atk", "pill-level",
    "modal-event", "event-text", "event-choices", "event-result", "picked-choice", "event-badges", "event-trivia", "btn-event-next",
    "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
    "battle-result", "battle-live", "turn-indicator", "battle-hand", "btn-battle-flee", "btn-battle-next",
@@ -742,6 +773,11 @@
     els["val-env"].textContent = state.env;
     els["val-soc"].textContent = state.soc;
     els["val-eco"].textContent = state.eco;
+  }
+
+  function updateLevelUI() {
+    els["val-level"].textContent = "Lv." + state.level;
+    els["val-atk"].textContent = "こうげき力 " + state.level;
   }
 
   function pulse(which) {
@@ -935,7 +971,7 @@
   var STATUS_ATTACK_MAX = 2;
 
   function statusBaseDamage(m) {
-    return Math.max(1, Math.floor(state[m.weak] / 4) + 1);
+    return Math.max(1, Math.floor(state[m.weak] / 4) + state.level);
   }
 
   function openBattle(idx) {
@@ -960,7 +996,7 @@
   }
 
   function setPlayerTurn() {
-    els["turn-indicator"].textContent = "ターン " + battleState.turn + " ・ あなたの番";
+    els["turn-indicator"].textContent = "ターン " + battleState.turn + " ・ あなたの番(Lv." + state.level + ")";
     els["turn-indicator"].classList.remove("enemy-turn");
     els["battle-live"].classList.remove("resolving");
     els["battle-hand"].classList.remove("resolving");
@@ -1106,8 +1142,19 @@
     if (win) {
       SFX.win();
       state.env += 1; state.soc += 1; state.eco += 1;
+      state.level += 1;
+      updateLevelUI();
+      pulse("level");
       els["battle-result"].className = "battle-result win";
-      els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんぶのステータス+1";
+      els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんぶのステータス+1、Lv." + state.level + "に上がってこうげき力もアップ!";
+      setTimeout(function () {
+        SFX.levelup();
+        var pop = document.createElement("div");
+        pop.className = "levelup-pop";
+        pop.textContent = "⭐ LEVEL UP! Lv." + state.level;
+        document.body.appendChild(pop);
+        setTimeout(function () { pop.remove(); }, 1450);
+      }, 500);
     } else {
       SFX.lose();
       els["battle-result"].className = "battle-result lose";
@@ -1184,9 +1231,10 @@
   }
 
   function resetGame() {
-    state = { pos: 0, env: 0, soc: 0, eco: 0, hand: [], moving: false, cardSeq: 0 };
+    state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0 };
     usedEvents = [];
     updateStatPills();
+    updateLevelUI();
     renderHand();
     buildBoard();
     placeToken(0, false);
