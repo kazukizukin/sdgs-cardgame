@@ -214,15 +214,19 @@
     font-family: var(--pixel); font-size: 15px; font-weight: 700; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.35); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
   .sdgs-badge .label { font-size: 11px; line-height: 1.4; color: var(--ink-soft); }
   .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); }
-  .hp-wrap { width: 100%; margin: 12px 0; }
+  .hp-wrap { width: 100%; margin: 12px 0; position: relative; }
+  .hp-wrap.player-hp { margin-top: 4px; }
   .hp-label { display: flex; justify-content: space-between; font-family: var(--pixel); font-size: 11.5px; color: var(--gold); margin-bottom: 4px; }
   .hp-track { height: 14px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1.5px solid var(--line-dim); }
   .hp-fill { height: 100%; background: linear-gradient(180deg, var(--hp2), var(--hp1)); border-radius: 2px; transition: width 0.4s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); }
+  .hp-fill.player { background: linear-gradient(180deg, #8fd0f2, var(--blue)); }
+  .shake-hit { animation: shake 0.35s; }
   .dmg-pop {
     position: absolute; top: 30%; left: 50%; font-family: var(--mono); font-weight: 800; font-size: 22px;
     color: #fff3d6; text-shadow: 0 2px 3px rgba(0,0,0,0.6); pointer-events: none; animation: dmgpop 0.65s ease forwards; z-index: 2;
   }
   .dmg-pop.super { color: #ff5c4d; font-size: 30px; }
+  .dmg-pop.player-dmg { color: var(--blue); top: -6px; }
   @keyframes dmgpop { 0%{opacity:1; transform:translate(-50%,0) scale(1);} 100%{opacity:0; transform:translate(-50%,-38px) scale(1.15);} }
 
   .battle-hand-label { font-family: var(--pixel); font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 6px; }
@@ -279,7 +283,7 @@
       <b>あそびかた</b><br>
       ①「すすむ」でコマを進める<br>
       ②止まったマスで4つの選択肢から1つを選ぶ→選ぶまで何が起こるかは分からない、当たりならステータスとカードが手に入る、まれにハズレもある<br>
-      ③モンスターマスでは、手札のカードか「ステータスこうげき」で戦う。ステータスこうげきはカードがなくても何度でも使える<br>
+      ③モンスターマスでは、手札のカードか「ステータスこうげき」で戦う。攻撃するたびモンスターも反撃してくるので、あなたのHPが0になる前にたおそう<br>
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
@@ -357,12 +361,16 @@
     </div>
     <p class="battle-desc" id="battle-desc"></p>
     <div class="hp-wrap">
-      <div class="hp-label"><span>HP</span><span id="hp-text">0 / 0</span></div>
+      <div class="hp-label"><span>モンスターHP</span><span id="hp-text">0 / 0</span></div>
       <div class="hp-track"><div class="hp-fill" id="hp-fill" style="width:100%"></div></div>
+    </div>
+    <div class="hp-wrap player-hp">
+      <div class="hp-label"><span>👤 あなたのHP</span><span id="php-text">0 / 0</span></div>
+      <div class="hp-track"><div class="hp-fill player" id="php-fill" style="width:100%"></div></div>
     </div>
     <div id="battle-result" style="display:none;"></div>
     <div id="battle-live">
-      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう</div>
+      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう(攻撃するたびモンスターが反撃してくる)</div>
       <div class="battle-hand" id="battle-hand"></div>
       <button class="btn-secondary btn-flee" id="btn-battle-flee">にげる</button>
     </div>
@@ -410,22 +418,24 @@
     lose: function () { tone(392, 0, 0.16, "sine", 0.11); tone(311, 0.13, 0.22, "sine", 0.1); },
     goal: function () { [523, 659, 784, 1047, 1319].forEach(function (f, i) { tone(f, i * 0.1, 0.22, "triangle", 0.14); }); },
     warp: function () { tone(600, 0, 0.05, "sine", 0.1); tone(900, 0.05, 0.05, "sine", 0.1); tone(1300, 0.1, 0.09, "sine", 0.12); },
-    slip: function () { tone(480, 0, 0.09, "sawtooth", 0.09); tone(300, 0.08, 0.16, "sawtooth", 0.09); }
+    slip: function () { tone(480, 0, 0.09, "sawtooth", 0.09); tone(300, 0.08, 0.16, "sawtooth", 0.09); },
+    hurt: function () { tone(220, 0, 0.1, "sawtooth", 0.13); tone(160, 0.08, 0.14, "sawtooth", 0.1); }
   };
 
   var GOAL_POS = 20;
   var ROWS = 5, COLS = 4;
+  var PLAYER_MAX_HP = 12;
 
   var monsters = [
-    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, img: "assets/monsters/tsukaisute.png", pos: 4,
+    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, atk: 2, img: "assets/monsters/tsukaisute.png", pos: 4,
       desc: "使い捨てプラスチックごみは、自然の中で分解されるまでに数百年かかることもあるんだ。" },
-    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, img: "assets/monsters/kaiyou_plastic.png", pos: 8,
+    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, atk: 2, img: "assets/monsters/kaiyou_plastic.png", pos: 8,
       desc: "海に流れ着いたプラスチックごみは、魚や海鳥の体の中に取り込まれてしまうことがあるよ。" },
-    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, img: "assets/monsters/ondanka_dragon.png", pos: 12,
+    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, atk: 3, img: "assets/monsters/ondanka_dragon.png", pos: 12,
       desc: "地球の平均気温は、この100年で約1℃上昇したと言われているよ。" },
-    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, img: "assets/monsters/foodloss.png", pos: 16,
+    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, atk: 3, img: "assets/monsters/foodloss.png", pos: 16,
       desc: "世界では約7億人以上が飢えに苦しむ一方、大量の食べ物が捨てられているんだ。" },
-    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, img: "assets/monsters/nigori_water.png", pos: 19,
+    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, atk: 4, img: "assets/monsters/nigori_water.png", pos: 19,
       desc: "世界には、安全な水を手に入れられない人が今も約20億人いると言われているよ。" }
   ];
   var specials = {};
@@ -538,7 +548,7 @@
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
    "modal-event", "event-text", "event-choices", "event-result", "event-badges", "event-trivia", "btn-event-next",
-   "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill",
+   "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
    "battle-result", "battle-live", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "diag-emoji", "diag-title", "diag-desc",
    "bar-env", "bar-soc", "bar-eco", "bv-env", "bv-soc", "bv-eco"
@@ -817,7 +827,7 @@
 
   function openBattle(idx) {
     var m = monsters[idx];
-    battleState = { m: m, hp: m.hp, maxHp: m.hp };
+    battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP };
     els["battle-name"].textContent = m.name;
     renderSdgsBadge(m.goal);
     els["battle-img"].src = m.img;
@@ -830,6 +840,7 @@
     els["battle-live"].style.display = "block";
     els["btn-battle-next"].style.display = "none";
     updateHpUI();
+    updatePlayerHpUI();
     renderBattleHand();
     els["modal-battle"].classList.add("active");
   }
@@ -837,6 +848,11 @@
   function updateHpUI() {
     els["hp-text"].textContent = Math.max(0, battleState.hp) + " / " + battleState.maxHp;
     els["hp-fill"].style.width = Math.max(0, (battleState.hp / battleState.maxHp) * 100) + "%";
+  }
+
+  function updatePlayerHpUI() {
+    els["php-text"].textContent = Math.max(0, battleState.playerHp) + " / " + battleState.playerMaxHp;
+    els["php-fill"].style.width = Math.max(0, (battleState.playerHp / battleState.playerMaxHp) * 100) + "%";
   }
 
   function renderBattleHand() {
@@ -871,10 +887,26 @@
     setTimeout(function () { pop.remove(); }, 700);
   }
 
+  function showPlayerDamagePop(dmg) {
+    var wrap = document.querySelector(".hp-wrap.player-hp");
+    var pop = document.createElement("div");
+    pop.className = "dmg-pop player-dmg";
+    pop.textContent = "-" + dmg;
+    wrap.appendChild(pop);
+    setTimeout(function () { pop.remove(); }, 700);
+  }
+
   function hitAnim() {
     els["battle-img"].classList.remove("hit");
     void els["battle-img"].offsetWidth;
     els["battle-img"].classList.add("hit");
+  }
+
+  function playerHitAnim() {
+    var wrap = document.querySelector(".hp-wrap.player-hp");
+    wrap.classList.remove("shake-hit");
+    void wrap.offsetWidth;
+    wrap.classList.add("shake-hit");
   }
 
   function attackWithStatus() {
@@ -887,11 +919,7 @@
     hitAnim();
     updateHpUI();
 
-    if (battleState.hp <= 0) {
-      endBattle(true);
-    } else {
-      renderBattleHand();
-    }
+    afterPlayerAttack();
   }
 
   function playCard(card) {
@@ -909,14 +937,34 @@
     updateHpUI();
     renderHand();
 
+    afterPlayerAttack();
+  }
+
+  function afterPlayerAttack() {
     if (battleState.hp <= 0) {
       endBattle(true);
+      return;
+    }
+    monsterCounterAttack();
+  }
+
+  function monsterCounterAttack() {
+    var dmg = battleState.m.atk;
+    battleState.playerHp -= dmg;
+
+    SFX.hurt();
+    showPlayerDamagePop(dmg);
+    playerHitAnim();
+    updatePlayerHpUI();
+
+    if (battleState.playerHp <= 0) {
+      endBattle(false, true);
     } else {
       renderBattleHand();
     }
   }
 
-  function endBattle(win) {
+  function endBattle(win, knockedOut) {
     els["battle-live"].style.display = "none";
     els["battle-result"].style.display = "block";
     if (win) {
@@ -927,14 +975,16 @@
     } else {
       SFX.lose();
       els["battle-result"].className = "battle-result lose";
-      els["battle-result"].textContent = "🏃 " + battleState.m.name + " からにげた。あつめたカードはそのまま手もとに残っている。";
+      els["battle-result"].textContent = knockedOut
+        ? "💦 やられてしまった…" + battleState.m.name + " からにげ帰った。てもちのカードはそのまま。"
+        : "🏃 " + battleState.m.name + " からにげた。あつめたカードはそのまま手もとに残っている。";
     }
     updateStatPills();
     els["btn-battle-next"].style.display = "block";
   }
 
   els["btn-battle-flee"].onclick = function () {
-    endBattle(false);
+    endBattle(false, false);
   };
 
   els["btn-battle-next"].onclick = function () {
