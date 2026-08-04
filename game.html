@@ -39,6 +39,11 @@
     word-break: keep-all; overflow-wrap: break-word;
   }
   .app { width: 100%; max-width: 620px; min-width: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 16px 14px calc(16px + env(safe-area-inset-bottom)); overflow: hidden; }
+  .mute-btn {
+    position: fixed; top: 10px; right: 10px; z-index: 15; width: 34px; height: 34px; border-radius: 4px;
+    background: var(--paper); border: 1.5px solid var(--line-dim); color: var(--gold); font-size: 15px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 0 rgba(0,0,0,0.35);
+  }
 
   .screen { display: none; flex: 1; flex-direction: column; min-height: 0; min-width: 0; }
   .screen.active { display: flex; }
@@ -311,6 +316,7 @@
 </style>
 </head>
 <body>
+<button id="btn-mute" class="mute-btn" aria-label="サウンド切り替え">🔊</button>
 <div class="app">
 
   <!-- ===== タイトル画面 ===== -->
@@ -446,6 +452,7 @@
 
   // ---- sound (WebAudio synth, no files needed) ----
   var audioCtx = null;
+  var muted = false;
   function getCtx() {
     if (!audioCtx) {
       var Ctx = window.AudioContext || window.webkitAudioContext;
@@ -456,6 +463,7 @@
     return audioCtx;
   }
   function tone(freq, start, dur, type, gain) {
+    if (muted) return;
     var ctx = getCtx();
     if (!ctx) return;
     var osc = ctx.createOscillator();
@@ -485,13 +493,71 @@
     levelup: function () { [660, 880, 1100, 1320].forEach(function (f, i) { tone(f, i * 0.08, 0.18, "square", 0.13); }); }
   };
 
+  // ---- BGM(WebAudioの簡易シーケンサー、ループ再生) ----
+  var BGM_PATTERNS = {
+    title: { tempo: 420, notes: [
+      [523, 0.38, "triangle", 0.045], [659, 0.38, "triangle", 0.045], [784, 0.38, "triangle", 0.045], null,
+      [659, 0.38, "triangle", 0.045], [523, 0.38, "triangle", 0.045], [392, 0.55, "triangle", 0.045], null
+    ] },
+    main: { tempo: 300, notes: [
+      [392, 0.26, "square", 0.035], [523, 0.26, "square", 0.035], [659, 0.26, "square", 0.035], [523, 0.26, "square", 0.035],
+      [440, 0.26, "square", 0.035], [523, 0.26, "square", 0.035], [587, 0.26, "square", 0.035], [523, 0.26, "square", 0.035]
+    ] },
+    battle: { tempo: 190, notes: [
+      [220, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04], [262, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04],
+      [196, 0.16, "sawtooth", 0.04], [196, 0.16, "sawtooth", 0.04], [233, 0.16, "sawtooth", 0.04], [220, 0.16, "sawtooth", 0.04]
+    ] }
+  };
+  var bgmTimer = null;
+  var bgmStep = 0;
+  var currentBgmName = null;
+  var desiredBgm = "title";
+  var audioUnlocked = false;
+
+  function stopBgm() {
+    if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+    currentBgmName = null;
+  }
+
+  function playBgm(name) {
+    stopBgm();
+    if (!name) return;
+    currentBgmName = name;
+    var pat = BGM_PATTERNS[name];
+    bgmStep = 0;
+    (function step() {
+      if (currentBgmName !== name) return;
+      var note = pat.notes[bgmStep % pat.notes.length];
+      if (note) tone(note[0], 0, note[1], note[2], note[3]);
+      bgmStep++;
+      bgmTimer = setTimeout(step, pat.tempo);
+    })();
+  }
+
+  function setBgm(name) {
+    desiredBgm = name;
+    if (audioUnlocked) playBgm(name);
+  }
+
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    getCtx();
+    playBgm(desiredBgm);
+  }
+  document.addEventListener("pointerdown", unlockAudio, { once: true });
+
   var GOAL_POS = 32;
   var ROWS = 8, COLS = 4;
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "1.9";
+  var GAME_VERSION = "2.0";
   var CHANGELOG = [
+    { version: "2.0", date: "2026-08-04", notes: [
+      "タイトル画面・通常プレイ中・バトル中それぞれにBGMを追加(効果音と同じくWebAudioで自動生成、音声ファイルなし)",
+      "右上に🔊/🔇ボタンを追加し、いつでも音のオン/オフを切り替えられるように"
+    ] },
     { version: "1.9", date: "2026-08-04", notes: [
       "モンスターを倒すとレベルアップする仕組みを追加。レベルが上がるほど「こうげき力」が増えて攻撃ダメージが上がる",
       "サイドバーにレベル・こうげき力を表示、バトル中のターン表示にも現在レベルを表示",
@@ -661,7 +727,7 @@
 
   var els = {};
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
-   "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag",
+   "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag", "btn-mute",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
    "val-level", "val-atk", "pill-level",
@@ -975,6 +1041,7 @@
   }
 
   function openBattle(idx) {
+    setBgm("battle");
     var m = monsters[idx];
     battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP, turn: 1, statusUses: STATUS_ATTACK_MAX };
     els["battle-name"].textContent = m.name;
@@ -1174,6 +1241,7 @@
     els["modal-battle"].classList.remove("active");
     els["btn-roll"].disabled = false;
     els["roll-hint"].textContent = goalHint();
+    setBgm("main");
   };
 
   // ---- diagnosis: 主属性×副属性の組み合わせで7ジョブに分岐 ----
@@ -1207,6 +1275,7 @@
   }
 
   function showResult() {
+    setBgm(null);
     showScreen("screen-result");
     var d = diagnose();
     els["char-avatar"].textContent = d.avatar;
@@ -1231,6 +1300,7 @@
   }
 
   function resetGame() {
+    setBgm("main");
     state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0 };
     usedEvents = [];
     updateStatPills();
@@ -1407,6 +1477,12 @@
   };
 
   els["version-tag"].textContent = "v" + GAME_VERSION;
+
+  els["btn-mute"].onclick = function () {
+    muted = !muted;
+    els["btn-mute"].textContent = muted ? "🔇" : "🔊";
+    if (!muted && audioUnlocked && !currentBgmName) playBgm(desiredBgm);
+  };
 
   buildBoard();
 })();
