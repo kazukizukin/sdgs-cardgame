@@ -253,7 +253,7 @@
 
   .sdgs-badge { display: flex; align-items: center; gap: 8px; margin: 2px 0 10px; padding: 6px; background: var(--paper); border: 1.5px solid var(--line-dim); border-radius: 4px; }
   .sdgs-badge .num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;
-    font-family: var(--pixel); font-size: 15px; font-weight: 700; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.35); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
+    font-family: var(--pixel); font-size: 15px; font-weight: 700; color: var(--gold); background: var(--panel2); border: 1.5px solid var(--line); box-shadow: 1px 1px 0 rgba(0,0,0,0.35); }
   .sdgs-badge .label { flex: 1; min-width: 0; font-size: 11px; line-height: 1.4; color: var(--ink-soft); overflow-wrap: break-word; }
   .sdgs-badge .label b { display: block; font-size: 11.5px; color: var(--ink); overflow-wrap: break-word; }
   .sdgs-credit { font-size: 10px; color: var(--ink-soft); text-align: center; margin: 6px 0 0; }
@@ -589,8 +589,11 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "2.6";
+  var GAME_VERSION = "2.7";
   var CHANGELOG = [
+    { version: "2.7", date: "2026-08-04", notes: [
+      "SDGs番号バッジの目標ごとの色分けをやめ、全目標共通の統一デザインに変更。公式カラーパレットとの類似リスクをさらに避けるため"
+    ] },
     { version: "2.6", date: "2026-08-04", notes: [
       "権利リスクを避けるため、国連公式のSDGsアイコン画像の使用をやめ、目標ごとに色分けしたオリジナルの番号バッジ(ドット絵風)に差し替え。図鑑・イベント結果・バトル画面すべてに反映"
     ] },
@@ -707,17 +710,9 @@
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
-  // 自作のドット絵風バッジ(公式SDGsロゴ・アイコンは使用しない。目標ごとに色分けした番号バッジのみ)
-  var SDGS_COLORS = {
-    1: "#b52a2a", 2: "#b55b2a", 3: "#b58c2a", 4: "#adb52a", 5: "#7cb52a",
-    6: "#4bb52a", 7: "#2ab53b", 8: "#2ab56c", 9: "#2ab59d", 10: "#2a9db5",
-    11: "#2a6cb5", 12: "#2a3bb5", 13: "#4b2ab5", 14: "#7c2ab5", 15: "#ad2ab5",
-    16: "#b52a8c", 17: "#b52a5b"
-  };
-
+  // 自作のドット絵風バッジ(公式SDGsロゴ・アイコンは使用しない。目標ごとの色分けもせず、番号のみの統一デザイン)
   function sdgsBadgeHtml(num) {
-    var color = SDGS_COLORS[num] || "#555";
-    return '<span class="num" style="background:' + color + '">' + num + '</span>';
+    return '<span class="num">' + num + '</span>';
   }
 
   function renderSdgsBadge(goalText) {
