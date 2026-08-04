@@ -470,6 +470,11 @@
   <div class="modal">
     <div class="kicker">SDGs図鑑</div>
     <h3>17の目標</h3>
+    <div class="trivia-box sdgs-intro">
+      <b>SDGsってなに?</b><br>
+      SDGs(エスディージーズ)は「Sustainable Development Goals(持続可能な開発目標)」の略。2015年に国連で決められた、2030年までに世界中のみんなで実現をめざす17この目標だよ。<br><br>
+      「持続可能」というのは「これから先もずっと続けていける」という意味。貧困や環境、平等など、地球とそこに住むみんなが抱えている問題を、国や企業だけでなく、わたしたち一人ひとりの行動で解決していこう、という世界共通の約束なんだ。
+    </div>
     <div id="sdgs-list"></div>
     <button class="btn-secondary" id="btn-sdgs-close">とじる</button>
   </div>
@@ -585,8 +590,11 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "2.3";
+  var GAME_VERSION = "2.4";
   var CHANGELOG = [
+    { version: "2.4", date: "2026-08-04", notes: [
+      "SDGs図鑑に「SDGsってなに?」というわかりやすい解説欄を追加。17の目標の一覧だけでなく、SDGsそのものの意味を先に読めるように"
+    ] },
     { version: "2.3", date: "2026-08-04", notes: [
       "村人をゴールマスに移動。ゴールに着くと村人に話しかけられ、そこから隠しステージ(5マスの隠し道)に進めるように変更",
       "隠しステージには専用のBGMを追加",
