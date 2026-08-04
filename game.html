@@ -170,6 +170,7 @@
   .sq.goal { border-color: var(--gold); background: linear-gradient(180deg,#3a2f14,#241c3c); font-size: 20px; box-shadow: 2px 2px 0 rgba(232,198,90,0.4); }
   .sq.warp { border-color: var(--blue); background: var(--blue-soft); }
   .sq.slip { border-color: #8a6fae; background: #2a2044; }
+  .sq.villager { border-color: var(--gold); background: #3a2a18; box-shadow: 0 0 8px rgba(232,198,90,0.35); }
   .sq.current { box-shadow: 0 0 0 3px var(--gold); }
   .sq .num { position: absolute; bottom: 1px; right: 3px; font-family: var(--mono); font-size: 7px; color: var(--ink-soft); opacity: 0.5; }
   .token-marker { position: absolute; top: -20px; left: 50%; transform: translateX(-50%) scale(0); font-size: 20px; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1); filter: drop-shadow(0 2px 3px rgba(0,0,0,0.7)); }
@@ -311,6 +312,8 @@
   .bar-fill.soc { background: var(--blue); }
   .bar-fill.eco { background: var(--amber); }
   .bar-fill.total { background: var(--gold); }
+  .secretboss-badge { margin-top: 14px; padding: 8px 12px; border-radius: 4px; font-family: var(--pixel); font-size: 12px;
+    color: var(--gold); background: #3a2a18; border: 1.5px solid var(--gold); }
   .bar-row .v { width: 26px; font-family: var(--mono); font-size: 11.5px; text-align: right; color: var(--ink); }
   #screen-result { justify-content: center; overflow-y: auto; }
 </style>
@@ -338,6 +341,7 @@
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
+    <button class="btn-secondary" id="btn-sdgs">📖 SDGs17の目標をみる</button>
     <button class="btn-secondary" id="btn-changelog">📢 お知らせ(更新情報)</button>
     <div class="version-tag" id="version-tag"></div>
    </div>
@@ -383,6 +387,7 @@
         <div class="bar-row"><div class="l">💰けいざい</div><div class="bar-track"><div class="bar-fill eco" id="bar-eco"></div></div><div class="v" id="bv-eco">0</div></div>
         <div class="bar-row"><div class="l">✨そうごうりょく</div><div class="bar-track"><div class="bar-fill total" id="bar-total"></div></div><div class="v" id="bv-total">0</div></div>
       </div>
+      <div class="secretboss-badge" id="secretboss-badge" style="display:none;">🏆 うわさの裏ボスをたおした!</div>
     </div>
     <button class="btn-primary" id="btn-copy">📤 けっかを画像でシェア</button>
     <button class="btn-secondary" id="btn-restart">もういちど遊ぶ</button>
@@ -436,6 +441,17 @@
   </div>
 </div>
 
+<!-- ===== 村人モーダル(隠しステージ) ===== -->
+<div class="modal-backdrop" id="modal-villager">
+  <div class="modal">
+    <div class="kicker">なぞの村人</div>
+    <h3>🧑‍🌾 村人が話しかけてきた</h3>
+    <p>「……旅人さんや。実はこの先に、うわさの裏ボスが棲みついておるんじゃ。とても強いらしいが……挑んでみるかい?」</p>
+    <button class="btn-primary" id="btn-villager-yes">🐉 裏ボスに挑戦する</button>
+    <button class="btn-secondary" id="btn-villager-no">やめておく</button>
+  </div>
+</div>
+
 <!-- ===== お知らせモーダル ===== -->
 <div class="modal-backdrop" id="modal-changelog">
   <div class="modal">
@@ -443,6 +459,16 @@
     <h3>アップデート情報</h3>
     <div id="changelog-list"></div>
     <button class="btn-secondary" id="btn-changelog-close">とじる</button>
+  </div>
+</div>
+
+<!-- ===== SDGs図鑑モーダル ===== -->
+<div class="modal-backdrop" id="modal-sdgs">
+  <div class="modal">
+    <div class="kicker">SDGs図鑑</div>
+    <h3>17の目標</h3>
+    <div id="sdgs-list"></div>
+    <button class="btn-secondary" id="btn-sdgs-close">とじる</button>
   </div>
 </div>
 
@@ -552,8 +578,15 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "2.0";
+  var GAME_VERSION = "2.2";
   var CHANGELOG = [
+    { version: "2.2", date: "2026-08-04", notes: [
+      "タイトル画面に「SDGs17の目標をみる」ボタンを追加。17の目標すべてを、目標ごとの色分けバッジと説明つきで見られる図鑑を追加"
+    ] },
+    { version: "2.1", date: "2026-08-04", notes: [
+      "盤面の途中に村人マスを追加。話しかけると隠しステージ(裏ボス戦)に挑戦できるように",
+      "裏ボスを倒すと通常より豪華な報酬(ぜんぶのステータス+3)と、結果画面・シェア画像に専用バッジが付くように"
+    ] },
     { version: "2.0", date: "2026-08-04", notes: [
       "タイトル画面・通常プレイ中・バトル中それぞれにBGMを追加(効果音と同じくWebAudioで自動生成、音声ファイルなし)",
       "右上に🔊/🔇ボタンを追加し、いつでも音のオン/オフを切り替えられるように"
@@ -626,6 +659,24 @@
   var warps = { 9: 11 };
   var slips = { 21: 19 };
 
+  // ---- 隠しステージ: 村人マス→挑戦すると裏ボス戦 ----
+  var villagerPos = 15;
+  var secretBoss = {
+    name: "カオス・ドラゴニア", goal: "SDGs 全目標・複合的な危機", hp: 24, atk: 5, img: "assets/monsters/ondanka_dragon.png",
+    desc: "かんきょう・しゃかい・けいざい、すべての課題が絡みあって生まれたという、うわさの裏ボス。いちばん育てた力が弱点になる。"
+  };
+  function resolveSecretBoss() {
+    var order = [
+      { key: "env", v: state.env }, { key: "soc", v: state.soc }, { key: "eco", v: state.eco }
+    ];
+    order.sort(function (a, b) { return b.v - a.v; });
+    var boss = {};
+    for (var k in secretBoss) boss[k] = secretBoss[k];
+    boss.weak = order[0].key;
+    boss.isSecretBoss = true;
+    return boss;
+  }
+
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
 
@@ -645,6 +696,37 @@
     els["sdgs-badge"].innerHTML =
       '<span class="num" style="background:' + color + '">' + num + '</span>' +
       '<span class="label"><b>SDGs ' + num + '</b>' + title + '</span>';
+  }
+
+  // SDGs17目標ぜんぶの図鑑データ(タイトルは公式の目標名、説明は子ども向けに書き下ろしたもの)
+  var SDGS_GOALS = [
+    { num: 1, title: "貧困をなくそう", desc: "世界中の「貧しさ」をなくして、みんなが安心してくらせるようにしよう、という目標だよ。" },
+    { num: 2, title: "飢餓をゼロに", desc: "飢えで苦しむ人をなくし、みんなが十分な食べ物を食べられるようにする目標だよ。" },
+    { num: 3, title: "すべての人に健康と福祉を", desc: "だれもが健康で、心も体も元気にすごせる世界を目指す目標だよ。" },
+    { num: 4, title: "質の高い教育をみんなに", desc: "すべての子どもや大人が、平等に質の高い教育を受けられるようにする目標だよ。" },
+    { num: 5, title: "ジェンダー平等を実現しよう", desc: "性別に関係なく、だれもが平等にチャンスを得られる社会を目指す目標だよ。" },
+    { num: 6, title: "安全な水とトイレを世界中に", desc: "きれいな水とトイレを、世界中のすべての人が使えるようにする目標だよ。" },
+    { num: 7, title: "エネルギーをみんなに そしてクリーンに", desc: "だれもが使える、地球にやさしいエネルギーを増やしていく目標だよ。" },
+    { num: 8, title: "働きがいも経済成長も", desc: "みんなが働きがいのある仕事につけて、経済も元気に成長していく社会を目指す目標だよ。" },
+    { num: 9, title: "産業と技術革新の基盤をつくろう", desc: "新しい技術やものづくりの仕組みを、みんなが使えるように整えていく目標だよ。" },
+    { num: 10, title: "人や国の不平等をなくそう", desc: "国の中でも、国と国の間でも、不平等をなくしていこうという目標だよ。" },
+    { num: 11, title: "住み続けられるまちづくりを", desc: "だれもが安全に、長く住み続けられるまちをつくる目標だよ。" },
+    { num: 12, title: "つくる責任 つかう責任", desc: "ものを作る人も使う人も、資源を大切にしていこうという目標だよ。" },
+    { num: 13, title: "気候変動に具体的な対策を", desc: "地球温暖化などの気候の変化に、みんなで具体的に取り組んでいく目標だよ。" },
+    { num: 14, title: "海の豊かさを守ろう", desc: "海の生き物や環境を守り、海の豊かさを次の世代に残していく目標だよ。" },
+    { num: 15, title: "陸の豊かさも守ろう", desc: "森や大地の自然、そこに住む生き物たちを守っていく目標だよ。" },
+    { num: 16, title: "平和と公正をすべての人に", desc: "争いのない、公正でだれもが安心できる社会をつくる目標だよ。" },
+    { num: 17, title: "パートナーシップで目標を達成しよう", desc: "国や企業、みんなが力を合わせて、これまでの目標を実現していこうという目標だよ。" }
+  ];
+
+  function renderSdgsList() {
+    els["sdgs-list"].innerHTML = SDGS_GOALS.map(function (g) {
+      var color = SDGS_COLORS[g.num];
+      return '<div class="sdgs-badge sdgs-list-item">' +
+        '<span class="num" style="background:' + color + '">' + g.num + '</span>' +
+        '<span class="label"><b>SDGs ' + g.num + '・' + g.title + '</b>' + g.desc + '</span>' +
+        '</div>';
+    }).join("");
   }
 
   var events = [
@@ -723,19 +805,21 @@
   ];
   var usedEvents = [];
 
-  var state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0 };
+  var state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false };
 
   var els = {};
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
    "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag", "btn-mute",
+   "btn-sdgs", "modal-sdgs", "sdgs-list", "btn-sdgs-close",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
    "val-level", "val-atk", "pill-level",
    "modal-event", "event-text", "event-choices", "event-result", "picked-choice", "event-badges", "event-trivia", "btn-event-next",
+   "modal-villager", "btn-villager-yes", "btn-villager-no",
    "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
    "battle-result", "battle-live", "turn-indicator", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "char-avatar", "char-jobtag", "diag-title", "diag-desc",
-   "bar-env", "bar-soc", "bar-eco", "bar-total", "bv-env", "bv-soc", "bv-eco", "bv-total"
+   "bar-env", "bar-soc", "bar-eco", "bar-total", "bv-env", "bv-soc", "bv-eco", "bv-total", "secretboss-badge"
   ].forEach(function (id) { els[id] = document.getElementById(id); });
 
   function showScreen(name) {
@@ -747,6 +831,7 @@
   // ---- board: snake layout, row0 (squares1-4) at bottom ----
   function squareMeta(pos) {
     if (pos === GOAL_POS) return { type: "goal" };
+    if (pos === villagerPos) return { type: "villager" };
     if (specials[pos] !== undefined) return { type: "monster", idx: specials[pos] };
     if (warps[pos] !== undefined) return { type: "warp" };
     if (slips[pos] !== undefined) return { type: "slip" };
@@ -809,6 +894,9 @@
     } else if (meta.type === "slip") {
       sq.classList.add("slip");
       sq.textContent = "🕳️";
+    } else if (meta.type === "villager") {
+      sq.classList.add("villager");
+      sq.textContent = "🧑‍🌾";
     } else {
       sq.textContent = "🎁";
     }
@@ -864,7 +952,7 @@
   }
 
   function nextSpecialPos(from) {
-    var keys = Object.keys(specials).map(Number).concat([GOAL_POS]).filter(function (p) { return p > from; });
+    var keys = Object.keys(specials).map(Number).concat([GOAL_POS, villagerPos]).filter(function (p) { return p > from; });
     return Math.min.apply(null, keys);
   }
 
@@ -928,10 +1016,15 @@
   function resolveSquare(pos) {
     state.moving = false;
     if (pos === GOAL_POS) { SFX.goal(); showResult(); return; }
-    if (specials[pos] !== undefined) { openBattle(specials[pos]); return; }
+    if (pos === villagerPos) { openVillager(); return; }
+    if (specials[pos] !== undefined) { openBattle(monsters[specials[pos]]); return; }
     if (warps[pos] !== undefined) { doWarp(pos, warps[pos], true); return; }
     if (slips[pos] !== undefined) { doWarp(pos, slips[pos], false); return; }
     openEvent();
+  }
+
+  function openVillager() {
+    els["modal-villager"].classList.add("active");
   }
 
   function doWarp(from, to, isForward) {
@@ -1040,9 +1133,8 @@
     return Math.max(1, Math.floor(state[m.weak] / 4) + state.level);
   }
 
-  function openBattle(idx) {
+  function openBattle(m) {
     setBgm("battle");
-    var m = monsters[idx];
     battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP, turn: 1, statusUses: STATUS_ATTACK_MAX };
     els["battle-name"].textContent = m.name;
     renderSdgsBadge(m.goal);
@@ -1208,12 +1300,18 @@
     els["battle-result"].style.display = "block";
     if (win) {
       SFX.win();
-      state.env += 1; state.soc += 1; state.eco += 1;
+      var bonus = battleState.m.isSecretBoss ? 3 : 1;
+      state.env += bonus; state.soc += bonus; state.eco += bonus;
       state.level += 1;
       updateLevelUI();
       pulse("level");
       els["battle-result"].className = "battle-result win";
-      els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんぶのステータス+1、Lv." + state.level + "に上がってこうげき力もアップ!";
+      if (battleState.m.isSecretBoss) {
+        state.secretBossCleared = true;
+        els["battle-result"].textContent = "🏆 うわさの裏ボス『" + battleState.m.name + "』をたおした!ぜんぶのステータス+3、Lv." + state.level + "に上がってこうげき力もアップ!";
+      } else {
+        els["battle-result"].textContent = "🎉 " + battleState.m.name + " をたおした!ぜんぶのステータス+1、Lv." + state.level + "に上がってこうげき力もアップ!";
+      }
       setTimeout(function () {
         SFX.levelup();
         var pop = document.createElement("div");
@@ -1242,6 +1340,16 @@
     els["btn-roll"].disabled = false;
     els["roll-hint"].textContent = goalHint();
     setBgm("main");
+  };
+
+  els["btn-villager-yes"].onclick = function () {
+    els["modal-villager"].classList.remove("active");
+    openBattle(resolveSecretBoss());
+  };
+  els["btn-villager-no"].onclick = function () {
+    els["modal-villager"].classList.remove("active");
+    els["btn-roll"].disabled = false;
+    els["roll-hint"].textContent = goalHint();
   };
 
   // ---- diagnosis: 主属性×副属性の組み合わせで7ジョブに分岐 ----
@@ -1282,6 +1390,7 @@
     els["char-jobtag"].textContent = d.tag;
     els["diag-title"].textContent = d.title;
     els["diag-desc"].textContent = d.desc;
+    els["secretboss-badge"].style.display = state.secretBossCleared ? "block" : "none";
 
     var total = state.env + state.soc + state.eco;
     var maxAbs = Math.max(6, Math.abs(state.env), Math.abs(state.soc), Math.abs(state.eco));
@@ -1301,7 +1410,7 @@
 
   function resetGame() {
     setBgm("main");
-    state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0 };
+    state = { pos: 0, env: 0, soc: 0, eco: 0, level: 1, hand: [], moving: false, cardSeq: 0, secretBossCleared: false };
     usedEvents = [];
     updateStatPills();
     updateLevelUI();
@@ -1424,6 +1533,19 @@
     drawStatBar(ctx, cardX + 40, barsY + 80, cardW - 80, "💰 けいざい", state.eco, maxAbs, "#c9863f");
     drawStatBar(ctx, cardX + 40, barsY + 120, cardW - 80, "✨ そうごうりょく", total, maxTotal, "#e8c65a");
 
+    if (state.secretBossCleared) {
+      ctx.fillStyle = "#3a2a18";
+      roundRectPath(ctx, cardX + 30, barsY + 150, cardW - 60, 34, 6);
+      ctx.fill();
+      ctx.strokeStyle = "#e8c65a"; ctx.lineWidth = 1.5;
+      roundRectPath(ctx, cardX + 30, barsY + 150, cardW - 60, 34, 6);
+      ctx.stroke();
+      ctx.fillStyle = "#e8c65a";
+      ctx.font = "bold 15px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆 うわさの裏ボスをたおした!", W / 2, barsY + 173);
+    }
+
     ctx.fillStyle = "#6b5a2e";
     ctx.font = "13px sans-serif";
     ctx.textAlign = "center";
@@ -1474,6 +1596,14 @@
   };
   els["btn-changelog-close"].onclick = function () {
     els["modal-changelog"].classList.remove("active");
+  };
+
+  els["btn-sdgs"].onclick = function () {
+    renderSdgsList();
+    els["modal-sdgs"].classList.add("active");
+  };
+  els["btn-sdgs-close"].onclick = function () {
+    els["modal-sdgs"].classList.remove("active");
   };
 
   els["version-tag"].textContent = "v" + GAME_VERSION;
