@@ -269,16 +269,20 @@
   /* ===== result ===== */
   .diag-card { background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line); border-radius: 6px; padding: 22px 18px; text-align: center; margin-bottom: 14px;
     box-shadow: inset 0 0 0 1px rgba(232,198,90,0.12); }
-  .diag-emoji { font-size: 42px; }
+  .char-avatar-wrap { width: 96px; height: 96px; margin: 0 auto 8px; border-radius: 8px; background: var(--paper); border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.15), 0 4px 0 rgba(0,0,0,0.35); }
+  .char-avatar { font-size: 46px; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5)); }
+  .char-jobtag { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); letter-spacing: 0.06em; margin-bottom: 2px; }
   .diag-title { font-family: var(--pixel); font-size: 21px; font-weight: 700; margin: 4px 0 6px; color: var(--gold); text-shadow: 0 0 14px rgba(232,198,90,0.4); }
   .bars { display: flex; flex-direction: column; gap: 9px; margin: 16px 0; }
   .bar-row { display: flex; align-items: center; gap: 8px; }
-  .bar-row .l { width: 64px; font-family: var(--pixel); font-size: 11px; color: var(--ink-soft); flex-shrink: 0; text-align: left; white-space: nowrap; }
+  .bar-row .l { width: 94px; font-family: var(--pixel); font-size: 10.5px; color: var(--ink-soft); flex-shrink: 0; text-align: left; white-space: nowrap; }
   .bar-track { flex: 1; height: 10px; background: var(--paper); border-radius: 3px; overflow: hidden; border: 1px solid var(--line-dim); }
   .bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; width: 0%; }
   .bar-fill.env { background: var(--green); }
   .bar-fill.soc { background: var(--blue); }
   .bar-fill.eco { background: var(--amber); }
+  .bar-fill.total { background: var(--gold); }
   .bar-row .v { width: 26px; font-family: var(--mono); font-size: 11.5px; text-align: right; color: var(--ink); }
   #screen-result { justify-content: center; overflow-y: auto; }
 </style>
@@ -339,16 +343,18 @@
    <div class="narrow">
     <div class="eyebrow"><span class="dot"></span>ゴール!</div>
     <div class="diag-card">
-      <div class="diag-emoji" id="diag-emoji">🏆</div>
+      <div class="char-jobtag" id="char-jobtag">ミライのジョブ</div>
+      <div class="char-avatar-wrap"><div class="char-avatar" id="char-avatar">🏆</div></div>
       <div class="diag-title" id="diag-title">診断中…</div>
       <p id="diag-desc"></p>
       <div class="bars">
         <div class="bar-row"><div class="l">🌿かんきょう</div><div class="bar-track"><div class="bar-fill env" id="bar-env"></div></div><div class="v" id="bv-env">0</div></div>
         <div class="bar-row"><div class="l">🤝しゃかい</div><div class="bar-track"><div class="bar-fill soc" id="bar-soc"></div></div><div class="v" id="bv-soc">0</div></div>
         <div class="bar-row"><div class="l">💰けいざい</div><div class="bar-track"><div class="bar-fill eco" id="bar-eco"></div></div><div class="v" id="bv-eco">0</div></div>
+        <div class="bar-row"><div class="l">✨そうごうりょく</div><div class="bar-track"><div class="bar-fill total" id="bar-total"></div></div><div class="v" id="bv-total">0</div></div>
       </div>
     </div>
-    <button class="btn-primary" id="btn-copy">けっかをコピーする</button>
+    <button class="btn-primary" id="btn-copy">📤 けっかを画像でシェア</button>
     <button class="btn-secondary" id="btn-restart">もういちど遊ぶ</button>
    </div>
   </div>
@@ -459,8 +465,13 @@
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "1.7";
+  var GAME_VERSION = "1.8";
   var CHANGELOG = [
+    { version: "1.8", date: "2026-08-04", notes: [
+      "診断結果を「主属性×副属性」の組み合わせで7ジョブに拡張(これまでの4種類から大幅増)、ジョブに合わせたキャラクターアバターを追加",
+      "結果画面に4つ目のパラメータ「そうごうりょく」を追加",
+      "シェアボタンを画像生成方式に変更。キャラクターやステータスが入った画像として保存・シェアできるように"
+    ] },
     { version: "1.7", date: "2026-08-04", notes: [
       "盤面を20マス→32マスに拡張し、モンスター戦までの間隔を広げて準備しやすく調整",
       "ワープマス・落とし穴マスをそれぞれ2箇所→1箇所に減らして展開をシンプルに"
@@ -626,8 +637,8 @@
    "modal-event", "event-text", "event-choices", "event-result", "picked-choice", "event-badges", "event-trivia", "btn-event-next",
    "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
    "battle-result", "battle-live", "turn-indicator", "battle-hand", "btn-battle-flee", "btn-battle-next",
-   "diag-emoji", "diag-title", "diag-desc",
-   "bar-env", "bar-soc", "bar-eco", "bv-env", "bv-soc", "bv-eco"
+   "char-avatar", "char-jobtag", "diag-title", "diag-desc",
+   "bar-env", "bar-soc", "bar-eco", "bar-total", "bv-env", "bv-soc", "bv-eco", "bv-total"
   ].forEach(function (id) { els[id] = document.getElementById(id); });
 
   function showScreen(name) {
@@ -1118,37 +1129,58 @@
     els["roll-hint"].textContent = goalHint();
   };
 
+  // ---- diagnosis: 主属性×副属性の組み合わせで7ジョブに分岐 ----
+  var JOB_TYPES = {
+    env_soc: { avatar: "🌿🛡️", tag: "かんきょう×しゃかい系ジョブ", title: "グリーン・ガーディアン",
+      desc: "自然を守りながら、まわりの人も大切にできるバランス型。あなたの選択が地球とコミュニティ、両方を守ってる。" },
+    env_eco: { avatar: "🌿💡", tag: "かんきょう×けいざい系ジョブ", title: "エコ・イノベーター",
+      desc: "環境を守る工夫を、上手にやりくりしながら実現するアイデアマン。地球にもお財布にもやさしい選択ができる。" },
+    soc_env: { avatar: "🤝🌱", tag: "しゃかい×かんきょう系ジョブ", title: "やさしさレンジャー",
+      desc: "まわりを思いやる力がピカイチ。自然への気づかいも忘れない、みんなの味方。" },
+    soc_eco: { avatar: "🤝💰", tag: "しゃかい×けいざい系ジョブ", title: "つながりプランナー",
+      desc: "人とのつながりを大切にしながら、上手にやりくりする力も持ち合わせたバランサー。" },
+    eco_env: { avatar: "💡🌿", tag: "けいざい×かんきょう系ジョブ", title: "みらい経済クリエイター",
+      desc: "工夫してやりくりする力がピカイチ。地球にやさしい選択も忘れないミライの起業家。" },
+    eco_soc: { avatar: "💰🤝", tag: "けいざい×しゃかい系ジョブ", title: "みんなのやりくり隊長",
+      desc: "上手にやりくりしながら、まわりの人のことも考えられる頼れるリーダー。" }
+  };
+  var SEEDLING_JOB = { avatar: "🌱", tag: "スタート系ジョブ", title: "これからのびしろヒーロー",
+    desc: "まだまだ伸びしろたっぷり!つぎに遊ぶときは、もっと選べるはず。" };
+
   function diagnose() {
     var total = state.env + state.soc + state.eco;
-    var maxKey = "env";
-    if (state.soc > state[maxKey]) maxKey = "soc";
-    if (state.eco > state[maxKey]) maxKey = "eco";
-    if (total < 6) {
-      return { emoji: "🌱", title: "これからのびしろヒーロー", desc: "まだまだ伸びしろたっぷり!つぎに遊ぶときは、もっと選べるはず。" };
-    }
-    var types = {
-      env: { emoji: "🌿", title: "グリーンガーディアン", desc: "自然を守るちからがピカイチ!あなたの選択が地球を守ってる。" },
-      soc: { emoji: "🤝", title: "やさしさシェアラー", desc: "まわりを思いやるちからがピカイチ!その優しさが世界を変える。" },
-      eco: { emoji: "💡", title: "みらい経済クリエイター", desc: "上手にやりくりするちからがピカイチ!その工夫がミライをつくる。" }
-    };
-    return types[maxKey];
+    if (total < 6) return SEEDLING_JOB;
+    var order = [
+      { key: "env", v: state.env },
+      { key: "soc", v: state.soc },
+      { key: "eco", v: state.eco }
+    ];
+    order.sort(function (a, b) { return b.v - a.v; });
+    return JOB_TYPES[order[0].key + "_" + order[1].key];
   }
 
   function showResult() {
     showScreen("screen-result");
     var d = diagnose();
-    els["diag-emoji"].textContent = d.emoji;
+    els["char-avatar"].textContent = d.avatar;
+    els["char-jobtag"].textContent = d.tag;
     els["diag-title"].textContent = d.title;
     els["diag-desc"].textContent = d.desc;
 
+    var total = state.env + state.soc + state.eco;
     var maxAbs = Math.max(6, Math.abs(state.env), Math.abs(state.soc), Math.abs(state.eco));
-    function setBar(key) {
-      var v = state[key];
-      var pct = Math.max(4, Math.min(100, (Math.max(v, 0) / maxAbs) * 100));
+    var maxTotal = Math.max(18, Math.abs(total));
+    function setBar(key, v, max) {
+      var pct = Math.max(4, Math.min(100, (Math.max(v, 0) / max) * 100));
       els["bar-" + key].style.width = pct + "%";
       els["bv-" + key].textContent = v;
     }
-    setTimeout(function () { setBar("env"); setBar("soc"); setBar("eco"); }, 80);
+    setTimeout(function () {
+      setBar("env", state.env, maxAbs);
+      setBar("soc", state.soc, maxAbs);
+      setBar("eco", state.eco, maxAbs);
+      setBar("total", total, maxTotal);
+    }, 80);
   }
 
   function resetGame() {
@@ -1168,17 +1200,144 @@
   els["btn-start"].onclick = resetGame;
   els["btn-roll"].onclick = roll;
   els["btn-restart"].onclick = resetGame;
-  els["btn-copy"].onclick = function () {
+
+  // ---- 結果を画像として生成してシェア/保存する ----
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    var line = "";
+    var lines = [];
+    text.split("").forEach(function (ch) {
+      var test = line + ch;
+      if (ctx.measureText(test).width > maxWidth && line !== "") {
+        lines.push(line);
+        line = ch;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
+    lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lineHeight); });
+    return lines.length;
+  }
+
+  function drawStatBar(ctx, x, y, w, label, value, max, color) {
+    ctx.fillStyle = "#a89bc4";
+    ctx.font = "20px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(label, x, y + 15);
+    var barX = x + 110, barW = w - 150;
+    ctx.fillStyle = "#171029";
+    roundRectPath(ctx, barX, y, barW, 18, 4);
+    ctx.fill();
+    var pct = Math.max(0.03, Math.min(1, Math.max(value, 0) / max));
+    ctx.fillStyle = color;
+    roundRectPath(ctx, barX, y, barW * pct, 18, 4);
+    ctx.fill();
+    ctx.fillStyle = "#ecdfc0";
+    ctx.textAlign = "right";
+    ctx.fillText(String(value), x + w, y + 15);
+  }
+
+  function buildResultImageBlob(callback) {
     var d = diagnose();
-    var text = "ミライクエスト診断結果\n" + d.title + "\nかんきょう:" + state.env + " / しゃかい:" + state.soc + " / けいざい:" + state.eco;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        els["btn-copy"].textContent = "コピーした!";
-        setTimeout(function () { els["btn-copy"].textContent = "けっかをコピーする"; }, 1500);
-      }).catch(function () { alert(text); });
-    } else {
-      alert(text);
-    }
+    var total = state.env + state.soc + state.eco;
+    var maxAbs = Math.max(6, Math.abs(state.env), Math.abs(state.soc), Math.abs(state.eco));
+    var maxTotal = Math.max(18, Math.abs(total));
+
+    var W = 640, H = 760;
+    var canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext("2d");
+
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#2c1f4d"); bg.addColorStop(1, "#100b1e");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "#e8c65a";
+    ctx.font = "bold 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎮 ミライクエスト 診断結果", W / 2, 50);
+
+    var cardX = 40, cardY = 80, cardW = W - 80, cardH = H - 160;
+    ctx.fillStyle = "#241a3d";
+    roundRectPath(ctx, cardX, cardY, cardW, cardH, 12);
+    ctx.fill();
+    ctx.strokeStyle = "#c9a227";
+    ctx.lineWidth = 3;
+    roundRectPath(ctx, cardX, cardY, cardW, cardH, 12);
+    ctx.stroke();
+
+    ctx.fillStyle = "#a89bc4";
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(d.tag, W / 2, cardY + 36);
+
+    ctx.fillStyle = "#171029";
+    roundRectPath(ctx, W / 2 - 60, cardY + 54, 120, 120, 10);
+    ctx.fill();
+    ctx.strokeStyle = "#c9a227"; ctx.lineWidth = 2;
+    roundRectPath(ctx, W / 2 - 60, cardY + 54, 120, 120, 10);
+    ctx.stroke();
+    ctx.font = "60px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(d.avatar, W / 2, cardY + 138);
+
+    ctx.fillStyle = "#e8c65a";
+    ctx.font = "bold 30px sans-serif";
+    ctx.fillText(d.title, W / 2, cardY + 220);
+
+    ctx.fillStyle = "#ecdfc0";
+    ctx.font = "17px sans-serif";
+    var descLines = wrapText(ctx, d.desc, W / 2, cardY + 254, cardW - 80, 26);
+    descLines = Math.max(descLines, 1);
+
+    var barsY = cardY + 254 + descLines * 26 + 30;
+    drawStatBar(ctx, cardX + 40, barsY, cardW - 80, "🌿 かんきょう", state.env, maxAbs, "#35b47a");
+    drawStatBar(ctx, cardX + 40, barsY + 40, cardW - 80, "🤝 しゃかい", state.soc, maxAbs, "#5b9bdb");
+    drawStatBar(ctx, cardX + 40, barsY + 80, cardW - 80, "💰 けいざい", state.eco, maxAbs, "#c9863f");
+    drawStatBar(ctx, cardX + 40, barsY + 120, cardW - 80, "✨ そうごうりょく", total, maxTotal, "#e8c65a");
+
+    ctx.fillStyle = "#6b5a2e";
+    ctx.font = "13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("kazukizukin.github.io/sdgs-cardgame  ・  v" + GAME_VERSION, W / 2, H - 24);
+
+    canvas.toBlob(callback, "image/png");
+  }
+
+  els["btn-copy"].onclick = function () {
+    var originalLabel = els["btn-copy"].textContent;
+    els["btn-copy"].disabled = true;
+    buildResultImageBlob(function (blob) {
+      els["btn-copy"].disabled = false;
+      if (!blob) { alert("画像の作成に失敗しました"); return; }
+      var file;
+      try { file = new File([blob], "mirai-quest-result.png", { type: "image/png" }); } catch (e) { file = null; }
+
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "ミライクエスト診断結果" }).catch(function () {});
+      } else {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "mirai-quest-result.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+        els["btn-copy"].textContent = "画像を保存した!";
+        setTimeout(function () { els["btn-copy"].textContent = originalLabel; }, 1800);
+      }
+    });
   };
 
   function renderChangelog() {
