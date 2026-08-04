@@ -85,6 +85,13 @@
     background: linear-gradient(180deg, var(--panel2), var(--panel)); border: 2px solid var(--line-dim); border-radius: 5px; line-height: 1.85;
     box-shadow: inset 0 0 0 1px rgba(232,198,90,0.08); }
   .rules b { color: var(--gold); font-family: var(--pixel); }
+  .version-tag { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); text-align: center; margin-top: 10px; letter-spacing: 0.05em; }
+
+  .changelog-item { margin-bottom: 16px; }
+  .changelog-item:last-child { margin-bottom: 4px; }
+  .changelog-item .v { font-family: var(--pixel); color: var(--gold); font-size: 14px; }
+  .changelog-item .d { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); margin-bottom: 6px; }
+  .changelog-item ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.75; }
 
   /* ===== play layout ===== */
   .play-layout { flex: 1; min-height: 0; min-width: 0; display: flex; gap: 12px; }
@@ -155,8 +162,8 @@
   .roll-hint { font-family: var(--pixel); font-size: 12px; color: var(--gold); text-align: center; margin-bottom: 6px; min-height: 15px; }
   .dice-row { display: flex; justify-content: center; margin-bottom: 8px; }
   .dice-face {
-    width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(180deg, var(--panel2), var(--paper)); border: 2px solid var(--line);
-    display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 20px; font-weight: 800;
+    width: 48px; height: 48px; border-radius: 4px; background: linear-gradient(180deg, var(--panel2), var(--paper)); border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 30px; font-weight: 800;
     color: var(--gold); transition: transform 0.08s; box-shadow: inset 0 0 0 1px rgba(232,198,90,0.1);
   }
   .dice-face.rolling { animation: dicespin 0.08s linear infinite; }
@@ -229,8 +236,12 @@
   .dmg-pop.player-dmg { color: var(--blue); top: -6px; }
   @keyframes dmgpop { 0%{opacity:1; transform:translate(-50%,0) scale(1);} 100%{opacity:0; transform:translate(-50%,-38px) scale(1.15);} }
 
+  .turn-indicator { font-family: var(--pixel); font-size: 13px; color: var(--gold); text-align: center; padding: 6px; margin-bottom: 8px;
+    background: var(--paper); border: 1.5px solid var(--line-dim); border-radius: 4px; transition: color 0.2s; }
+  .turn-indicator.enemy-turn { color: var(--hp1); }
   .battle-hand-label { font-family: var(--pixel); font-size: 12.5px; color: var(--ink-soft); margin: 10px 0 6px; }
   .battle-hand { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .battle-hand.resolving .play-card, #battle-live.resolving .btn-flee { pointer-events: none; opacity: 0.45; }
   .play-card {
     flex: 1 0 auto; min-width: 78px; border-radius: 4px; padding: 10px 8px; text-align: center; border: 2px solid;
     font-weight: 700; font-size: 13px; position: relative; background: var(--paper);
@@ -287,6 +298,8 @@
       ④ゴールで「あなたのミライタイプ」が分かる
     </div>
     <button class="btn-primary" id="btn-start">はじめる</button>
+    <button class="btn-secondary" id="btn-changelog">📢 お知らせ(更新情報)</button>
+    <div class="version-tag" id="version-tag"></div>
    </div>
   </div>
 
@@ -370,11 +383,22 @@
     </div>
     <div id="battle-result" style="display:none;"></div>
     <div id="battle-live">
-      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう(攻撃するたびモンスターが反撃してくる)</div>
+      <div class="turn-indicator" id="turn-indicator">ターン 1 ・ あなたの番</div>
+      <div class="battle-hand-label">カードか「ステータスこうげき」でたたかおう</div>
       <div class="battle-hand" id="battle-hand"></div>
       <button class="btn-secondary btn-flee" id="btn-battle-flee">にげる</button>
     </div>
     <button class="btn-secondary" id="btn-battle-next" style="display:none;">つぎへ</button>
+  </div>
+</div>
+
+<!-- ===== お知らせモーダル ===== -->
+<div class="modal-backdrop" id="modal-changelog">
+  <div class="modal">
+    <div class="kicker">お知らせ</div>
+    <h3>アップデート情報</h3>
+    <div id="changelog-list"></div>
+    <button class="btn-secondary" id="btn-changelog-close">とじる</button>
   </div>
 </div>
 
@@ -425,6 +449,37 @@
   var GOAL_POS = 20;
   var ROWS = 5, COLS = 4;
   var PLAYER_MAX_HP = 12;
+
+  // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
+  var GAME_VERSION = "1.5";
+  var CHANGELOG = [
+    { version: "1.5", date: "2026-08-04", notes: [
+      "サイコロが1〜6の目すべて出るように修正(これまで1〜2しか出ていなかった)",
+      "コマがマスを1つずつホップして進む演出を追加(効果音つき)",
+      "「ゴールまであと◯マス」を常に表示するように",
+      "この「お知らせ」画面から更新履歴を読めるように"
+    ] },
+    { version: "1.4", date: "2026-08-04", notes: [
+      "バトルをターン制に変更(「あなたの番」→「モンスターの番」を交互に表示)",
+      "モンスターの番のあいだはボタン操作をできないようにして誤操作を防止"
+    ] },
+    { version: "1.3", date: "2026-08-03", notes: [
+      "モンスターが反撃してくるように変更し、プレイヤー専用のHPバーを追加",
+      "手札がなくても「ステータスこうげき」で戦えるが、反撃を受けて体力が減るように調整"
+    ] },
+    { version: "1.2", date: "2026-08-03", notes: [
+      "バトル画面に、関連するSDGs目標のバッジ(番号・公式カラー・タイトル)を追加"
+    ] },
+    { version: "1.1", date: "2026-08-03", notes: [
+      "見た目をドット風デザインにリニューアル",
+      "できごとマスの選択肢を2択→4択に(1つはハズレ)、選ぶまで結果が見えないように変更",
+      "できごと・モンスターごとに環境の豆知識を追加",
+      "ステータスと手札を画面右のサイドバーに表示するレイアウトに変更"
+    ] },
+    { version: "1.0", date: "2026-08-01", notes: [
+      "「ミライクエスト」初回公開"
+    ] }
+  ];
 
   var monsters = [
     { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, atk: 2, img: "assets/monsters/tsukaisute.png", pos: 4,
@@ -545,11 +600,12 @@
 
   var els = {};
   ["screen-title", "screen-play", "screen-result", "btn-start", "btn-roll", "btn-restart", "btn-copy",
+   "btn-changelog", "modal-changelog", "changelog-list", "btn-changelog-close", "version-tag",
    "board-scroll", "hand-strip", "roll-hint", "dice-face",
    "val-env", "val-soc", "val-eco", "pill-env", "pill-soc", "pill-eco",
    "modal-event", "event-text", "event-choices", "event-result", "event-badges", "event-trivia", "btn-event-next",
    "modal-battle", "battle-name", "sdgs-badge", "battle-img", "battle-weak", "battle-desc", "hp-text", "hp-fill", "php-text", "php-fill",
-   "battle-result", "battle-live", "battle-hand", "btn-battle-flee", "btn-battle-next",
+   "battle-result", "battle-live", "turn-indicator", "battle-hand", "btn-battle-flee", "btn-battle-next",
    "diag-emoji", "diag-title", "diag-desc",
    "bar-env", "bar-soc", "bar-eco", "bv-env", "bv-soc", "bv-eco"
   ].forEach(function (id) { els[id] = document.getElementById(id); });
@@ -679,11 +735,18 @@
     return Math.min.apply(null, keys);
   }
 
+  var DICE_FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+  function goalHint() {
+    var left = GOAL_POS - state.pos;
+    return left > 0 ? "つぎへすすもう(ゴールまであと" + left + "マス)" : "つぎへすすもう";
+  }
+
   function roll() {
     if (state.moving || state.pos >= GOAL_POS) return;
     state.moving = true;
     els["btn-roll"].disabled = true;
-    var finalDice = 1 + Math.floor(Math.random() * 2);
+    var finalDice = 1 + Math.floor(Math.random() * 6);
     var face = els["dice-face"];
     face.classList.remove("settle");
     face.classList.add("rolling");
@@ -691,12 +754,12 @@
     var ticks = 0, maxTicks = 9;
     var interval = setInterval(function () {
       ticks++;
-      face.textContent = 1 + Math.floor(Math.random() * 2);
+      face.textContent = DICE_FACES[1 + Math.floor(Math.random() * 6)];
       SFX.tick();
       if (ticks >= maxTicks) {
         clearInterval(interval);
         face.classList.remove("rolling");
-        face.textContent = finalDice;
+        face.textContent = DICE_FACES[finalDice];
         face.classList.add("settle");
         els["roll-hint"].textContent = "🎲 " + finalDice + " が出た!";
         moveAfterRoll(finalDice);
@@ -707,9 +770,26 @@
   function moveAfterRoll(dice) {
     var boundary = nextSpecialPos(state.pos);
     var target = Math.min(state.pos + dice, boundary);
+    var from = state.pos;
     state.pos = target;
-    placeToken(target, true);
-    setTimeout(function () { resolveSquare(target); }, 450);
+    animateSteps(from, target, function () {
+      setTimeout(function () { resolveSquare(target); }, 350);
+    });
+  }
+
+  function animateSteps(from, to, done) {
+    var cur = from;
+    function stepNext() {
+      cur++;
+      placeToken(cur, cur === to);
+      if (cur < to) {
+        SFX.tick();
+        setTimeout(stepNext, 220);
+      } else {
+        done();
+      }
+    }
+    stepNext();
   }
 
   function resolveSquare(pos) {
@@ -732,7 +812,7 @@
       setTimeout(function () {
         state.moving = false;
         els["btn-roll"].disabled = false;
-        els["roll-hint"].textContent = "つぎへすすもう";
+        els["roll-hint"].textContent = goalHint();
       }, 450);
     }, 350);
   }
@@ -815,7 +895,7 @@
   els["btn-event-next"].onclick = function () {
     els["modal-event"].classList.remove("active");
     els["btn-roll"].disabled = false;
-    els["roll-hint"].textContent = "つぎへすすもう";
+    els["roll-hint"].textContent = goalHint();
   };
 
   // ---- battle ----
@@ -827,7 +907,7 @@
 
   function openBattle(idx) {
     var m = monsters[idx];
-    battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP };
+    battleState = { m: m, hp: m.hp, maxHp: m.hp, playerHp: PLAYER_MAX_HP, playerMaxHp: PLAYER_MAX_HP, turn: 1 };
     els["battle-name"].textContent = m.name;
     renderSdgsBadge(m.goal);
     els["battle-img"].src = m.img;
@@ -839,10 +919,25 @@
     els["battle-result"].style.display = "none";
     els["battle-live"].style.display = "block";
     els["btn-battle-next"].style.display = "none";
+    setPlayerTurn();
     updateHpUI();
     updatePlayerHpUI();
     renderBattleHand();
     els["modal-battle"].classList.add("active");
+  }
+
+  function setPlayerTurn() {
+    els["turn-indicator"].textContent = "ターン " + battleState.turn + " ・ あなたの番";
+    els["turn-indicator"].classList.remove("enemy-turn");
+    els["battle-live"].classList.remove("resolving");
+    els["battle-hand"].classList.remove("resolving");
+  }
+
+  function setEnemyTurn() {
+    els["turn-indicator"].textContent = "ターン " + battleState.turn + " ・ " + battleState.m.name + " の番…";
+    els["turn-indicator"].classList.add("enemy-turn");
+    els["battle-live"].classList.add("resolving");
+    els["battle-hand"].classList.add("resolving");
   }
 
   function updateHpUI() {
@@ -945,7 +1040,8 @@
       endBattle(true);
       return;
     }
-    monsterCounterAttack();
+    setEnemyTurn();
+    setTimeout(monsterCounterAttack, 700);
   }
 
   function monsterCounterAttack() {
@@ -960,6 +1056,8 @@
     if (battleState.playerHp <= 0) {
       endBattle(false, true);
     } else {
+      battleState.turn++;
+      setPlayerTurn();
       renderBattleHand();
     }
   }
@@ -990,7 +1088,7 @@
   els["btn-battle-next"].onclick = function () {
     els["modal-battle"].classList.remove("active");
     els["btn-roll"].disabled = false;
-    els["roll-hint"].textContent = "つぎへすすもう";
+    els["roll-hint"].textContent = goalHint();
   };
 
   function diagnose() {
@@ -1055,6 +1153,26 @@
       alert(text);
     }
   };
+
+  function renderChangelog() {
+    var html = "";
+    CHANGELOG.forEach(function (entry) {
+      html += '<div class="changelog-item"><div class="v">v' + entry.version + '</div><div class="d">' + entry.date + '</div><ul>';
+      entry.notes.forEach(function (n) { html += "<li>" + n + "</li>"; });
+      html += "</ul></div>";
+    });
+    els["changelog-list"].innerHTML = html;
+  }
+
+  els["btn-changelog"].onclick = function () {
+    renderChangelog();
+    els["modal-changelog"].classList.add("active");
+  };
+  els["btn-changelog-close"].onclick = function () {
+    els["modal-changelog"].classList.remove("active");
+  };
+
+  els["version-tag"].textContent = "v" + GAME_VERSION;
 
   buildBoard();
 })();
