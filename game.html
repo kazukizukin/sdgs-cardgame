@@ -454,13 +454,17 @@
     hurt: function () { tone(220, 0, 0.1, "sawtooth", 0.13); tone(160, 0.08, 0.14, "sawtooth", 0.1); }
   };
 
-  var GOAL_POS = 20;
-  var ROWS = 5, COLS = 4;
+  var GOAL_POS = 32;
+  var ROWS = 8, COLS = 4;
   var PLAYER_MAX_HP = 12;
 
   // ---- version / changelog(改修のたびに先頭へ追加してGAME_VERSIONを上げる) ----
-  var GAME_VERSION = "1.6";
+  var GAME_VERSION = "1.7";
   var CHANGELOG = [
+    { version: "1.7", date: "2026-08-04", notes: [
+      "盤面を20マス→32マスに拡張し、モンスター戦までの間隔を広げて準備しやすく調整",
+      "ワープマス・落とし穴マスをそれぞれ2箇所→1箇所に減らして展開をシンプルに"
+    ] },
     { version: "1.6", date: "2026-08-04", notes: [
       "できごとの豆知識・モンスター解説を見やすい色の枠で表示するように改善(文字も少し大きく)",
       "手札のカードを「こうげきカード」、「ステータスこうげき」を「こうげき」という表示名に変更",
@@ -498,22 +502,22 @@
   ];
 
   var monsters = [
-    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, atk: 2, img: "assets/monsters/tsukaisute.png", pos: 4,
+    { name: "つかいすてジャイアント", goal: "SDGs 12・つくる責任 つかう責任", weak: "env", hp: 6, atk: 2, img: "assets/monsters/tsukaisute.png", pos: 6,
       desc: "使い捨てプラスチックごみは、自然の中で分解されるまでに数百年かかることもあるんだ。" },
-    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, atk: 2, img: "assets/monsters/kaiyou_plastic.png", pos: 8,
+    { name: "海洋プラスチックもんじゃ", goal: "SDGs 14・海の豊かさを守ろう", weak: "env", hp: 10, atk: 2, img: "assets/monsters/kaiyou_plastic.png", pos: 12,
       desc: "海に流れ着いたプラスチックごみは、魚や海鳥の体の中に取り込まれてしまうことがあるよ。" },
-    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, atk: 3, img: "assets/monsters/ondanka_dragon.png", pos: 12,
+    { name: "おんだんかドラゴン", goal: "SDGs 13・気候変動に具体的な対策を", weak: "env", hp: 14, atk: 3, img: "assets/monsters/ondanka_dragon.png", pos: 18,
       desc: "地球の平均気温は、この100年で約1℃上昇したと言われているよ。" },
-    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, atk: 3, img: "assets/monsters/foodloss.png", pos: 16,
+    { name: "フードロスかいじゅう", goal: "SDGs 2・飢餓をゼロに", weak: "soc", hp: 10, atk: 3, img: "assets/monsters/foodloss.png", pos: 24,
       desc: "世界では約7億人以上が飢えに苦しむ一方、大量の食べ物が捨てられているんだ。" },
-    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, atk: 4, img: "assets/monsters/nigori_water.png", pos: 19,
+    { name: "にごりウォーター", goal: "SDGs 6・安全な水とトイレを世界中に", weak: "env", hp: 16, atk: 4, img: "assets/monsters/nigori_water.png", pos: 30,
       desc: "世界には、安全な水を手に入れられない人が今も約20億人いると言われているよ。" }
   ];
   var specials = {};
   monsters.forEach(function (m, i) { specials[m.pos] = i; });
 
-  var warps = { 2: 5, 14: 17 };
-  var slips = { 10: 7, 18: 15 };
+  var warps = { 9: 11 };
+  var slips = { 21: 19 };
 
   var ATTR_LABEL = { env: "かんきょう", soc: "しゃかい", eco: "けいざい" };
   var ATTR_ICON = { env: "🌿", soc: "🤝", eco: "💰" };
